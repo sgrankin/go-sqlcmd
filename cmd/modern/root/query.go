@@ -21,6 +21,7 @@ type Query struct {
 	database  string
 	rw        bool
 	allowExec bool
+	planFile  string
 }
 
 func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
@@ -78,6 +79,11 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 		Bool:  &c.allowExec,
 		Name:  "allow-exec",
 		Usage: localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		String: &c.planFile,
+		Name:   "plan-file",
+		Usage:  localizer.Sprintf("Write execution plan XML to the specified file")})
 }
 
 // run executes the Query command.
@@ -90,6 +96,7 @@ func (c *Query) run() {
 	s := sql.New(sql.SqlOptions{
 		ReadOnly:  !c.rw,
 		AllowExec: c.allowExec,
+		PlanFile:  c.planFile,
 	})
 	if c.text == "" {
 		s.Connect(endpoint, user, sql.ConnectOptions{Database: c.database, Interactive: true})

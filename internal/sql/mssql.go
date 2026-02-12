@@ -34,6 +34,13 @@ func (m *mssql) Connect(
 	m.sqlcmd = sqlcmd.New(m.console, "", v)
 	m.sqlcmd.ReadOnly = m.readOnly
 	m.sqlcmd.AllowExec = m.allowExec
+	if m.planFile != "" {
+		pf, pfErr := os.Create(m.planFile)
+		if pfErr != nil {
+			checkErr(fmt.Errorf("failed to create plan file '%s': %w", m.planFile, pfErr))
+		}
+		m.sqlcmd.PlanFile = pf
+	}
 	m.sqlcmd.Format = sqlcmd.NewSQLCmdDefaultFormatter(v, false, sqlcmd.ControlIgnore)
 	connect := sqlcmd.ConnectSettings{
 		ServerName: fmt.Sprintf(

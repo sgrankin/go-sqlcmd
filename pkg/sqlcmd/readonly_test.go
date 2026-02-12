@@ -185,6 +185,9 @@ func TestReadOnlyAllowsSafeStatements(t *testing.T) {
 	assert.NoError(t, CheckReadOnly("SELECT 1", false))
 	assert.NoError(t, CheckReadOnly("SET NOCOUNT ON", false))
 	assert.NoError(t, CheckReadOnly("DECLARE @x INT", false))
+	// SET STATISTICS XML ON is used by --plan-file (via ExecContext, not in the batch)
+	// but verify it would pass read-only anyway since SET is allowed
+	assert.NoError(t, CheckReadOnly("SET STATISTICS XML ON", false))
 }
 
 // setupSqlcmdWithMemoryOutput creates a Sqlcmd with in-memory error output for testing.

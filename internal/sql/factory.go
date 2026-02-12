@@ -7,6 +7,7 @@ type SqlOptions struct {
 	UnitTesting bool
 	ReadOnly    bool
 	AllowExec   bool
+	PlanFile    string
 }
 
 func New(options SqlOptions) Sql {
@@ -16,6 +17,7 @@ func New(options SqlOptions) Sql {
 		return &mssql{
 			readOnly:  options.ReadOnly,
 			allowExec: options.AllowExec,
+			planFile:  options.PlanFile,
 		}
 	}
 }

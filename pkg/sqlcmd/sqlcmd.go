@@ -90,6 +90,11 @@ type Sqlcmd struct {
 	ReadOnly bool
 	// AllowExec allows EXEC/EXECUTE statements in read-only mode
 	AllowExec bool
+	// PlanFile, when non-nil, enables execution plan collection.
+	// Queries are wrapped in SET STATISTICS XML ON and showplan XML
+	// result sets are written to PlanFile instead of normal output.
+	// Data result sets are still sent to the regular output.
+	PlanFile io.Writer
 	colorizer color.Colorizer
 	termchan  chan os.Signal
 }
@@ -456,6 +461,11 @@ func (s *Sqlcmd) getRunnableQuery(q string) string {
 // -100 : Error encountered prior to selecting return value
 // -101: No rows found
 // -102: Conversion error occurred when selecting return value
+// isShowPlanResultSet returns true if the columns indicate an XML Showplan result set.
+func isShowPlanResultSet(cols []*sql.ColumnType) bool {
+	return len(cols) == 1 && strings.Contains(cols[0].Name(), "XML Showplan")
+}
+
 func (s *Sqlcmd) runQuery(query string) (int, error) {
 	retcode := -101
 	s.Format.BeginBatch(query, s.vars, s.GetOutput(), s.GetError())
@@ -465,6 +475,9 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 		ct, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 		defer cancel()
 		ctx = ct
+	}
+	if s.PlanFile != nil {
+		_, _ = s.db.ExecContext(ctx, "SET STATISTICS XML ON")
 	}
 	retmsg := &sqlexp.ReturnMessage{}
 	rows, qe := s.db.QueryContext(ctx, query, retmsg)
@@ -518,30 +531,45 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 					retcode = -100
 					qe = s.handleError(&retcode, err)
 					s.Format.AddError(err)
-				} else {
+				}
+			}
+
+			if s.PlanFile != nil && isShowPlanResultSet(cols) {
+				// Write showplan XML to the plan file, not the normal output
+				for rows.Next() {
+					var xmlPlan string
+					if err := rows.Scan(&xmlPlan); err != nil {
+						s.Format.AddError(err)
+						break
+					}
+					fmt.Fprintln(s.PlanFile, xmlPlan)
+				}
+				retcode = 0
+			} else {
+				if err == nil {
 					s.Format.BeginResultSet(cols)
 				}
-			}
-			inresult := rows.Next()
-			for inresult {
-				col1 := s.Format.AddRow(rows)
-				inresult = rows.Next()
-				if !inresult {
-					if col1 == "" {
-						retcode = 0
-					} else if _, cerr := fmt.Sscanf(col1, "%d", &retcode); cerr != nil {
-						retcode = -102
+				inresult := rows.Next()
+				for inresult {
+					col1 := s.Format.AddRow(rows)
+					inresult = rows.Next()
+					if !inresult {
+						if col1 == "" {
+							retcode = 0
+						} else if _, cerr := fmt.Sscanf(col1, "%d", &retcode); cerr != nil {
+							retcode = -102
+						}
 					}
 				}
-			}
-			if retcode != -102 {
-				if err = rows.Err(); err != nil {
-					retcode = -100
-					qe = s.handleError(&retcode, err)
-					s.Format.AddError(err)
+				if retcode != -102 {
+					if err = rows.Err(); err != nil {
+						retcode = -100
+						qe = s.handleError(&retcode, err)
+						s.Format.AddError(err)
+					}
 				}
+				s.Format.EndResultSet()
 			}
-			s.Format.EndResultSet()
 		}
 	}
 	s.Format.EndBatch()
