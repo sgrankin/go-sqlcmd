@@ -86,6 +86,10 @@ type Sqlcmd struct {
 	UnicodeOutputFile bool
 	// EchoInput tells the GO command to print the batch text before running the query
 	EchoInput bool
+	// ReadOnly rejects destructive SQL statements before they reach the server
+	ReadOnly bool
+	// AllowExec allows EXEC/EXECUTE statements in read-only mode
+	AllowExec bool
 	colorizer color.Colorizer
 	termchan  chan os.Signal
 }

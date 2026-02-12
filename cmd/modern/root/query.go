@@ -17,8 +17,10 @@ import (
 type Query struct {
 	cmdparser.Cmd
 
-	text     string
-	database string
+	text      string
+	database  string
+	rw        bool
+	allowExec bool
 }
 
 func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
@@ -66,6 +68,16 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 		Name:      "database",
 		Shorthand: "d",
 		Usage:     localizer.Sprintf("Database to use")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.rw,
+		Name:  "rw",
+		Usage: localizer.Sprintf("Disable read-only mode, allowing destructive SQL statements")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.allowExec,
+		Name:  "allow-exec",
+		Usage: localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode")})
 }
 
 // run executes the Query command.
@@ -75,7 +87,10 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 func (c *Query) run() {
 	endpoint, user := config.CurrentContext()
 
-	s := sql.New(sql.SqlOptions{})
+	s := sql.New(sql.SqlOptions{
+		ReadOnly:  !c.rw,
+		AllowExec: c.allowExec,
+	})
 	if c.text == "" {
 		s.Connect(endpoint, user, sql.ConnectOptions{Database: c.database, Interactive: true})
 	} else {

@@ -89,7 +89,8 @@ This is a **jj** (Jujutsu) repo colocated with git.
 2. After every meaningful win: `jj describe -m "..."` then `jj new`
 3. Before committing: run `go test ./...` and confirm tests pass (at least the packages that don't need SQL Server/Docker)
 4. New code must have tests. Use `go test -cover ./path/to/pkg` to check coverage of packages you changed
-5. Do NOT use git commands directly
+5. Update `TODO.md` when completing a planned item (mark it done, record design decisions)
+6. Do NOT use git commands directly
 
 ## Code Conventions
 

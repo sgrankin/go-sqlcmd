@@ -84,6 +84,8 @@ type SQLCmdArguments struct {
 	TraceFile                   string
 	ServerNameOverride          string
 	RawErrors                   bool
+	ReadWrite                   bool
+	AllowExec                   bool
 	// Keep Help at the end of the list
 	Help  bool
 	Ascii bool
@@ -517,6 +519,8 @@ func setFlags(rootCmd *cobra.Command, args *SQLCmdArguments) {
 	rootCmd.Flags().BoolVarP(&args.EnableColumnEncryption, "enable-column-encryption", "g", false, localizer.Sprintf("Enable column encryption"))
 	rootCmd.Flags().StringVarP(&args.ChangePassword, "change-password", "z", "", localizer.Sprintf("New password"))
 	rootCmd.Flags().StringVarP(&args.ChangePasswordAndExit, "change-password-exit", "Z", "", localizer.Sprintf("New password and exit"))
+	rootCmd.Flags().BoolVar(&args.ReadWrite, "rw", false, localizer.Sprintf("Disable read-only mode, allowing destructive SQL statements"))
+	rootCmd.Flags().BoolVar(&args.AllowExec, "allow-exec", false, localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode"))
 }
 
 func setScriptVariable(v string) string {
@@ -854,6 +858,8 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 	}
 
 	s := sqlcmd.New(line, wd, vars)
+	s.ReadOnly = !args.ReadWrite
+	s.AllowExec = args.AllowExec
 	// We want the default behavior on ctrl-c - exit the process
 	s.SetupCloseHandler()
 	defer s.StopCloseHandler()

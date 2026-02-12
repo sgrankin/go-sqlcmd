@@ -5,12 +5,17 @@ package sql
 
 type SqlOptions struct {
 	UnitTesting bool
+	ReadOnly    bool
+	AllowExec   bool
 }
 
 func New(options SqlOptions) Sql {
 	if options.UnitTesting {
 		return &mock{}
 	} else {
-		return &mssql{}
+		return &mssql{
+			readOnly:  options.ReadOnly,
+			allowExec: options.AllowExec,
+		}
 	}
 }

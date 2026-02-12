@@ -3,24 +3,17 @@
 Improvements discovered while profiling demand planning queries against Azure SQL.
 See `~/Code/demand-planning-query-analysis.md` for the session that motivated these.
 
-## 1. Read-only mode (on by default)
+## 1. ~~Read-only mode (on by default)~~ DONE
 
-**Problem**: It's too easy to accidentally run a destructive statement (UPDATE, DELETE, DROP) when exploring a production or shared dev database.
+Implemented in `pkg/sqlcmd/readonly.go`. Client-side safety net that rejects destructive SQL before it reaches the server.
 
-**Proposal**: Add a `--read-only` flag (default: on) that rejects non-read statements before sending them to the server. Parse each batch and only allow:
-- `SELECT`, `WITH ... SELECT`
-- `SET` (session options like STATISTICS, NOCOUNT, etc.)
-- `DECLARE`, `PRINT`
-- `EXEC` / `EXECUTE` only with an explicit allowlist or `--allow-exec` flag
-
-Reject everything else (`INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `CREATE`, `TRUNCATE`, `MERGE`, `EXEC` by default) with a clear error message and a hint to use `--read-only=false` or `--rw`.
-
-This is a client-side safety net, not a security boundary. It protects against typos and copy-paste errors, not malicious intent.
-
-**Open questions**:
-- Should `BEGIN TRAN` / `ROLLBACK` be allowed? Useful for "what-if" exploration, but risky if the user forgets to rollback.
-- Should temp table creation (`CREATE TABLE #foo`, `SELECT INTO #foo`) be allowed? These are common in analysis workflows and don't affect real data.
-- Could also set `ApplicationIntent=ReadOnly` on the connection string to route to read replicas on Azure SQL (orthogonal to statement filtering, but complementary).
+- **Default ON** — use `--rw` to disable
+- **`--allow-exec`** — permits EXEC/EXECUTE in read-only mode
+- **BEGIN TRAN / COMMIT / ROLLBACK**: Rejected (decision: too risky if user forgets to rollback)
+- **Temp tables**: Allowed (`CREATE TABLE #foo`, `SELECT INTO #foo`) — common in analysis, no real data impact
+- **CTEs**: `WITH...SELECT` allowed, `WITH...DELETE/UPDATE/INSERT/MERGE` rejected
+- Wired into both legacy (`cmd/sqlcmd`) and modern (`cmd/modern/root/query.go`) CLI paths
+- `ApplicationIntent=ReadOnly` for read replicas is orthogonal and not yet implemented
 
 ## 2. Proper query plan output
 
@@ -136,7 +129,7 @@ Benefits:
 
 ## Priority
 
-1. **Read-only mode** — safety first, prevents accidents
+1. ~~**Read-only mode**~~ — DONE
 2. **`--plan` flag** — biggest workflow friction point today
 3. **`--format csv/jsonl`** — enables DuckDB-based analysis workflows
 4. **Plan analysis** — nice to have, Python scripts work fine as stopgap

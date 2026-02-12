@@ -249,6 +249,12 @@ func exitCommand(s *Sqlcmd, args []string, line uint) error {
 
 	if len(query1) > 0 || len(query2) > 0 {
 		query := query1 + SqlcmdEol + query2
+		if s.ReadOnly {
+			if err := CheckReadOnly(query, s.AllowExec); err != nil {
+				s.WriteError(s.GetError(), err)
+				return ErrExitRequested
+			}
+		}
 		s.Exitcode, _ = s.runQuery(query)
 	}
 	return ErrExitRequested
@@ -290,6 +296,17 @@ func goCommand(s *Sqlcmd, args []string, line uint) error {
 		return nil
 	}
 	query = s.getRunnableQuery(query)
+	if s.ReadOnly {
+		if err := CheckReadOnly(query, s.AllowExec); err != nil {
+			s.WriteError(s.GetError(), err)
+			s.batch.Reset(nil)
+			if s.Connect.ExitOnError {
+				s.Exitcode = 1
+				return err
+			}
+			return nil
+		}
+	}
 	for i := 0; i < n; i++ {
 		if retcode, err := s.runQuery(query); err != nil {
 			s.Exitcode = retcode
