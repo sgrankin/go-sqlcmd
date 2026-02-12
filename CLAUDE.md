@@ -18,7 +18,8 @@ go run ./cmd/modern [args...]
 ## Test
 
 ```bash
-# Unit tests (no SQL Server needed — some tests will be skipped)
+# Full test suite — Docker is the only prerequisite
+# testcontainers-go auto-provisions a shared SQL Server container
 go test ./...
 
 # With coverage summary per package
@@ -29,25 +30,16 @@ go test -coverprofile=cover.out ./...
 go tool cover -html=cover.out              # opens in browser
 go tool cover -func=cover.out | tail -1    # total line coverage
 
-# Start a local SQL Server for integration tests
-export SQLCMDPASSWORD=$(openssl rand -base64 16)A1!  # must meet complexity requirements
-docker run -d --name sql2022 -p 1433:1433 \
-  -e ACCEPT_EULA=1 -e SA_PASSWORD="$SQLCMDPASSWORD" \
-  mcr.microsoft.com/mssql/server:2022-latest
-# Wait for it to be ready (~15-30s)
-until docker exec sql2022 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SQLCMDPASSWORD" -C -Q "SELECT 1" &>/dev/null; do sleep 2; done
-
-# Run full test suite against it
-export SQLCMDSERVER=localhost SQLCMDUSER=sa
-go test -v ./...
-
-# Tear down
-docker rm -f sql2022
+# Use an existing SQL Server instead of testcontainers
+export SQLCMDSERVER=localhost SQLCMDUSER=sa SQLCMDPASSWORD='YourPassword1!'
+go test ./...
 ```
 
-CI does the same — see `.github/workflows/pr-validation.yml`.
+**Test infrastructure**: `internal/sqlservertest` uses testcontainers-go with a named, reusable MSSQL container. All packages that need SQL Server call `sqlservertest.SetupForTestMain()` in their `TestMain`. If `SQLCMDSERVER` is already set, the container is not started (respects existing server). If Docker is unavailable, tests that need SQL Server will fail individually.
 
-**Packages that need SQL Server**: `cmd/sqlcmd`, `pkg/sqlcmd`. **Need Docker daemon**: `cmd/modern/root`, `cmd/modern/root/install`, `internal/container`. **Other env-specific failures**: `internal/net`, `internal/tools/tool`. The rest pass without any external services.
+**Colima users**: The helper auto-detects Docker socket via `docker context inspect`. No manual `DOCKER_HOST` setup needed.
+
+**Packages that still skip/fail**: `cmd/modern/root` (query tests have upstream config-layer issues), `cmd/modern/root/install`, `internal/container` (need Docker daemon for container lifecycle tests), `internal/net`, `internal/tools/tool` (env-specific).
 
 ## Lint
 

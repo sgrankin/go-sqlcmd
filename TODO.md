@@ -115,17 +115,15 @@ sqlcmd --profile dev-rri --plan -i query.sql -o plan.xml
 
 Add a `sqlcmd --mcp` flag that speaks the MCP (Model Context Protocol) stdio protocol, exposing tools like `run_query` and `get_query_plan`. This would let Claude Code (or other MCP clients) call SQL queries as native tools instead of shelling out via Bash. Lower priority since Bash invocation works, but would provide better ergonomics (structured input/output, no shell escaping, direct error handling).
 
-## 8. Test infrastructure: testcontainers-go
+## 8. ~~Test infrastructure: testcontainers-go~~ DONE
 
-**Problem**: Integration tests that need SQL Server require manual `docker run` setup or CI-specific scripting. Tests that need Docker (container lifecycle, install commands) assume a pre-configured environment. This makes it hard to run the full test suite locally with a single `go test ./...`.
+Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module with a named, reusable container (`go-sqlcmd-test`) shared across all test packages.
 
-**Proposal**: Use [testcontainers-go](https://golang.testcontainers.org/) to manage SQL Server containers from within tests. Tests that need a database would call a shared `TestMain` or helper that starts a container once per package, sets `SQLCMDSERVER`/`SQLCMDUSER`/`SQLCMDPASSWORD`, and tears it down after. This would make `go test ./...` self-contained — no external setup needed.
-
-Benefits:
-- Single-command test runs locally and in CI
-- Container lifecycle tied to test lifecycle (no leaked containers)
-- Can pin SQL Server version per test suite
-- Existing `testcontainers-go` has a [MS SQL Server module](https://golang.testcontainers.org/modules/mssql/)
+- **`SetupForTestMain()`** — called from `TestMain` in `pkg/sqlcmd`, `cmd/sqlcmd`, `cmd/modern`, `cmd/modern/root`
+- **Container reuse**: `WithReuseByName` ensures all packages share one SQL Server instance during `go test ./...`
+- **Colima support**: Auto-detects Docker socket from `docker context inspect`
+- **Respects existing server**: If `SQLCMDSERVER` is already set, no container is started
+- **Graceful degradation**: If Docker is unavailable, prints message and tests that need SQL fail individually
 
 ## Priority
 

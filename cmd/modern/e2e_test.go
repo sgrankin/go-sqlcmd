@@ -13,6 +13,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/microsoft/go-sqlcmd/internal/sqlservertest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -322,7 +323,9 @@ func cleanupBinary() {
 }
 
 func TestMain(m *testing.M) {
+	sqlCleanup := sqlservertest.SetupForTestMain()
 	code := m.Run()
 	cleanupBinary()
+	sqlCleanup()
 	os.Exit(code)
 }
