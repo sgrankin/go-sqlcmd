@@ -21,12 +21,33 @@ go run ./cmd/modern [args...]
 # Unit tests (no SQL Server needed — some tests will be skipped)
 go test ./...
 
-# With a SQL Server instance (used in CI)
-export SQLCMDSERVER=localhost SQLCMDUSER=sa SQLCMDPASSWORD=<password>
+# With coverage summary per package
+go test -cover ./...
+
+# Generate coverage profile and open HTML report
+go test -coverprofile=cover.out ./...
+go tool cover -html=cover.out              # opens in browser
+go tool cover -func=cover.out | tail -1    # total line coverage
+
+# Start a local SQL Server for integration tests
+export SQLCMDPASSWORD=$(openssl rand -base64 16)A1!  # must meet complexity requirements
+docker run -d --name sql2022 -p 1433:1433 \
+  -e ACCEPT_EULA=1 -e SA_PASSWORD="$SQLCMDPASSWORD" \
+  mcr.microsoft.com/mssql/server:2022-latest
+# Wait for it to be ready (~15-30s)
+until docker exec sql2022 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SQLCMDPASSWORD" -C -Q "SELECT 1" &>/dev/null; do sleep 2; done
+
+# Run full test suite against it
+export SQLCMDSERVER=localhost SQLCMDUSER=sa
 go test -v ./...
+
+# Tear down
+docker rm -f sql2022
 ```
 
-CI spins up `mcr.microsoft.com/mssql/server:2022-latest` in Docker. See `.github/workflows/pr-validation.yml`.
+CI does the same — see `.github/workflows/pr-validation.yml`.
+
+**Packages that need SQL Server**: `cmd/sqlcmd`, `pkg/sqlcmd`. **Need Docker daemon**: `cmd/modern/root`, `cmd/modern/root/install`, `internal/container`. **Other env-specific failures**: `internal/net`, `internal/tools/tool`. The rest pass without any external services.
 
 ## Lint
 
@@ -63,7 +84,12 @@ This is a **jj** (Jujutsu) repo colocated with git.
 - `origin` — `github.com/sgrankin/go-sqlcmd` (our fork, push here)
 - `upstream` — `github.com/microsoft/go-sqlcmd`
 
-**Workflow**: Work in the current change at the tip of the tree. When done, `jj describe` to set the commit message, then `jj new` to create a clean change for the next edit. Do NOT use git commands directly.
+**Workflow**:
+1. Work in the current change at the tip of the tree
+2. After every meaningful win: `jj describe -m "..."` then `jj new`
+3. Before committing: run `go test ./...` and confirm tests pass (at least the packages that don't need SQL Server/Docker)
+4. New code must have tests. Use `go test -cover ./path/to/pkg` to check coverage of packages you changed
+5. Do NOT use git commands directly
 
 ## Code Conventions
 
