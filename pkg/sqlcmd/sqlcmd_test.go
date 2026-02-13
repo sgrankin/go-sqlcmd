@@ -133,14 +133,17 @@ func ConnectDb(t testing.TB) (*sql.Conn, error) {
 func TestSqlCmdQueryAndExit(t *testing.T) {
 	s, file := setupSqlcmdWithFileOutput(t)
 	defer os.Remove(file.Name())
+	errBuf := &memoryBuffer{buf: new(bytes.Buffer)}
+	s.SetError(errBuf)
 	s.Query = "select $(X"
 	err := s.Run(true, false)
 	if assert.NoError(t, err, "s.Run(once = true)") {
 		s.SetOutput(nil)
-		bytes, err := os.ReadFile(file.Name())
+		fileBytes, err := os.ReadFile(file.Name())
 		if assert.NoError(t, err, "os.ReadFile") {
-			assert.Equal(t, "Sqlcmd: Error: Syntax error at line 1"+SqlcmdEol, string(bytes), "Incorrect output from Run")
+			assert.Empty(t, string(fileBytes), "output file should be empty for syntax error")
 		}
+		assert.Equal(t, "Sqlcmd: Error: Syntax error at line 1"+SqlcmdEol, errBuf.buf.String(), "error should go to stderr")
 	}
 }
 
@@ -351,24 +354,30 @@ func TestExitCodeSetOnError(t *testing.T) {
 func TestSqlCmdExitOnError(t *testing.T) {
 	s, buf := setupSqlCmdWithMemoryOutput(t)
 	defer buf.Close()
+	errBuf := &memoryBuffer{buf: new(bytes.Buffer)}
+	s.SetError(errBuf)
 	s.Connect.ExitOnError = true
 	err := runSqlCmd(t, s, []string{"select 1", "GO", ":setvar", "select 2", "GO"})
 	o := buf.buf.String()
 	assert.EqualError(t, err, "Sqlcmd: Error: Syntax error at line 3 near command ':SETVAR'.", "Run should return an error")
-	assert.Equal(t, "1"+SqlcmdEol+SqlcmdEol+oneRowAffected+SqlcmdEol+"Sqlcmd: Error: Syntax error at line 3 near command ':SETVAR'."+SqlcmdEol, o, "Only first select should run")
+	assert.Equal(t, "1"+SqlcmdEol+SqlcmdEol+oneRowAffected+SqlcmdEol, o, "Only first select should run")
+	assert.Contains(t, errBuf.buf.String(), "Sqlcmd: Error: Syntax error at line 3 near command ':SETVAR'.", "syntax error should go to stderr")
 	assert.Equal(t, 1, s.Exitcode, "s.ExitCode for a syntax error")
 
 	s, buf = setupSqlCmdWithMemoryOutput(t)
 	defer buf.Close()
+	errBuf = &memoryBuffer{buf: new(bytes.Buffer)}
+	s.SetError(errBuf)
 	s.Connect.ExitOnError = true
 	s.Connect.ErrorSeverityLevel = 15
 	s.vars.Set(SQLCMDERRORLEVEL, "14")
 	err = runSqlCmd(t, s, []string{"raiserror(N'13', 13, 1)", "GO", "raiserror(N'14', 14, 1)", "GO", "raiserror(N'15', 15, 1)", "GO", "SELECT 'nope'", "GO"})
 	o = buf.buf.String()
-	assert.NotContains(t, o, "Level 13", "Level 13 should be filtered from the output")
+	e := errBuf.buf.String()
+	assert.NotContains(t, e, "Level 13", "Level 13 should be filtered from the error output")
 	assert.NotContains(t, o, "nope", "Last select should not be run")
-	assert.Contains(t, o, "Level 14", "Level 14 should be in the output")
-	assert.Contains(t, o, "Level 15", "Level 15 should be in the output")
+	assert.Contains(t, e, "Level 14", "Level 14 should be in the error output")
+	assert.Contains(t, e, "Level 15", "Level 15 should be in the error output")
 	assert.Equal(t, 15, s.Exitcode, "s.ExitCode for a syntax error")
 	assert.NoError(t, err, "Run should not return an error for a SQL error")
 }
@@ -624,11 +633,14 @@ func TestVeryLongLineInFile(t *testing.T) {
 func TestQueryTimeout(t *testing.T) {
 	s, buf := setupSqlCmdWithMemoryOutput(t)
 	defer buf.Close()
+	errBuf := &memoryBuffer{buf: new(bytes.Buffer)}
+	s.SetError(errBuf)
 	s.vars.Set(SQLCMDSTATTIMEOUT, "1")
 	i, err := s.runQuery("waitfor delay '00:00:10'")
 	if assert.NoError(t, err, "runQuery returned an error") {
 		assert.Equal(t, -100, i, "return from runQuery")
-		assert.Equal(t, "Timeout expired"+SqlcmdEol, buf.buf.String(), "Query should have timed out")
+		assert.Empty(t, buf.buf.String(), "output should be empty for timeout")
+		assert.Equal(t, "Timeout expired"+SqlcmdEol, errBuf.buf.String(), "Query should have timed out")
 	}
 }
 

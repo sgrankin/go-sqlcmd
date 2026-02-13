@@ -107,6 +107,31 @@ func TestCSVMultiResultSet(t *testing.T) {
 	assert.Contains(t, output, "x\n")
 }
 
+// TestCSVMessagesNotInOutputFile verifies that when -o redirects output to a
+// file but no explicit error writer is set (the default), messages like
+// "rows affected" go to stderr instead of polluting the output file.
+func TestCSVMessagesNotInOutputFile(t *testing.T) {
+	s, outBuf := setupSqlCmdWithMemoryOutput(t)
+	s.Format = NewCSVFormatter()
+	// Do NOT call s.SetError — this simulates the `-o file` case where only
+	// output is redirected. GetError() should default to os.Stderr, keeping
+	// the output buffer clean.
+
+	s.Query = "PRINT 'noise'; SELECT 1 AS val"
+	err := s.Run(true, false)
+	require.NoError(t, err)
+
+	output := outBuf.buf.String()
+	assert.NotContains(t, output, "noise", "messages must not appear in output")
+
+	r := csv.NewReader(strings.NewReader(output))
+	records, err := r.ReadAll()
+	require.NoError(t, err)
+	require.Len(t, records, 2, "should have header + 1 data row")
+	assert.Equal(t, []string{"val"}, records[0])
+	assert.Equal(t, []string{"1"}, records[1])
+}
+
 func TestCSVMessagesToStderr(t *testing.T) {
 	s, outBuf, errBuf := setupCSVCmd(t)
 

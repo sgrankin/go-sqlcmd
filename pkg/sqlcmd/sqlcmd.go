@@ -239,10 +239,13 @@ func (s *Sqlcmd) SetOutput(o io.WriteCloser) {
 	s.out = o
 }
 
-// GetError returns the io.Writer to use for errors
+// GetError returns the io.Writer to use for errors.
+// When no explicit error writer is set, defaults to os.Stderr so that
+// messages (e.g. "rows affected") don't pollute structured output formats
+// like CSV/JSONL when -o redirects stdout to a file.
 func (s *Sqlcmd) GetError() io.Writer {
 	if s.err == nil {
-		return s.GetOutput()
+		return os.Stderr
 	}
 	return s.err
 }
