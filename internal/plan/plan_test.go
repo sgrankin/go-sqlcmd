@@ -290,10 +290,14 @@ func TestFormatTextHotNodes(t *testing.T) {
 	FormatText(&buf, result)
 	output := buf.String()
 
-	// All 4 nodes have elapsed > 0, top 5 would mark all of them
+	// Children should be hot-marked, but root should not
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "Root") {
+			assert.NotContains(t, line, "★", "root node should not be hot-marked")
+		}
+	}
 	assert.Contains(t, output, "★")
-	// Verify tree structure
-	assert.Contains(t, output, "Root")
 	assert.Contains(t, output, "Child1")
 	assert.Contains(t, output, "Child3")
 }

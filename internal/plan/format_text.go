@@ -72,7 +72,7 @@ func writeSummaryHeader(w io.Writer, stmt *StatementResult) {
 		line2 = append(line2, fmt.Sprintf("Compile: %sms", v))
 	}
 	if granted, ok := stmt.MemoryGrant["GrantedMemory"]; ok {
-		if used, ok2 := stmt.MemoryGrant["UsedMemory"]; ok2 {
+		if used, ok2 := stmt.MemoryGrant["MaxUsedMemory"]; ok2 {
 			line2 = append(line2, fmt.Sprintf("Memory: %sKB granted, %sKB used", granted, used))
 		} else {
 			line2 = append(line2, fmt.Sprintf("Memory: %sKB granted", granted))
@@ -107,22 +107,23 @@ func writeSummaryHeader(w io.Writer, stmt *StatementResult) {
 }
 
 // computeHotSet returns the NodeIDs of the top-N operators by elapsed time.
+// The root node is excluded since its elapsed time is always ~= total and isn't actionable.
 func computeHotSet(root *Operator, n int) map[int]bool {
 	type nodeElapsed struct {
 		id      int
 		elapsed int64
 	}
 	var nodes []nodeElapsed
-	var walk func(op *Operator)
-	walk = func(op *Operator) {
-		if op.ElapsedMs > 0 {
+	var walk func(op *Operator, isRoot bool)
+	walk = func(op *Operator, isRoot bool) {
+		if !isRoot && op.ElapsedMs > 0 {
 			nodes = append(nodes, nodeElapsed{op.NodeID, op.ElapsedMs})
 		}
 		for _, c := range op.Children {
-			walk(c)
+			walk(c, false)
 		}
 	}
-	walk(root)
+	walk(root, true)
 
 	sort.Slice(nodes, func(i, j int) bool {
 		return nodes[i].elapsed > nodes[j].elapsed
