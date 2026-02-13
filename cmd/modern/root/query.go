@@ -4,12 +4,15 @@
 package root
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 
 	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
 	"github.com/microsoft/go-sqlcmd/internal/config"
 	"github.com/microsoft/go-sqlcmd/internal/localizer"
 	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/microsoft/go-sqlcmd/internal/plan"
 	"github.com/microsoft/go-sqlcmd/internal/sql"
 )
 
@@ -23,6 +26,7 @@ type Query struct {
 	allowExec bool
 	planFile  string
 	format    string
+	analyze   bool
 }
 
 func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
@@ -41,6 +45,9 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 			{Description: localizer.Sprintf("Set new default database"), Steps: []string{
 				fmt.Sprintf(`sqlcmd query "ALTER LOGIN [%s] WITH DEFAULT_DATABASE = [tempdb]" --database master`,
 					pal.UserName()),
+			}},
+			{Description: localizer.Sprintf("Run a query and analyze its execution plan"), Steps: []string{
+				`sqlcmd query --analyze "SELECT * FROM orders"`,
 			}},
 		},
 		Run: c.run,
@@ -90,20 +97,27 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 		String: &c.format,
 		Name:   "format",
 		Usage:  localizer.Sprintf("Output format: default, csv, jsonl")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.analyze,
+		Name:  "analyze",
+		Usage: localizer.Sprintf("Analyze the execution plan after running the query")})
 }
 
-// run executes the Query command.
-// It connects to a SQL Server endpoint using the current context from the config file,
-// and either runs an interactive SQL console or executes the provided query.
-// If an error occurs, it is handled by the CheckErr function.
 func (c *Query) run() {
 	endpoint, user := config.CurrentContext()
 
+	var planBuf *bytes.Buffer
+	if c.analyze {
+		planBuf = &bytes.Buffer{}
+	}
+
 	s := sql.New(sql.SqlOptions{
-		ReadOnly:  !c.rw,
-		AllowExec: c.allowExec,
-		PlanFile:  c.planFile,
-		Format:    c.format,
+		ReadOnly:   !c.rw,
+		AllowExec:  c.allowExec,
+		PlanFile:   c.planFile,
+		PlanBuffer: planBuf,
+		Format:     c.format,
 	})
 	if c.text == "" {
 		s.Connect(endpoint, user, sql.ConnectOptions{Database: c.database, Interactive: true})
@@ -112,4 +126,12 @@ func (c *Query) run() {
 	}
 
 	s.Query(c.text)
+
+	if c.analyze && planBuf.Len() > 0 {
+		plans, err := plan.Parse(planBuf.Bytes())
+		c.CheckErr(err)
+		result := plan.Analyze(plans)
+		fmt.Fprintln(os.Stdout)
+		plan.FormatText(os.Stdout, result)
+	}
 }

@@ -42,25 +42,46 @@ When outputting normally (no `--plan` flag), detect result columns containing `<
 - Write the XML as a single unwrapped line (ignore `-w` for this column)
 - Or write it to a sidecar file (`output.plan.xml`) and print a reference in the output
 
-## 3. Built-in plan analysis
+## 3. ~~Built-in plan analysis~~ DONE
 
-**Problem**: Analyzing an XML execution plan requires external scripts (currently ~257 lines of Python across 4 files). This means a Python dependency and manual file juggling.
+Ported Python plan analysis scripts into native Go in `internal/plan/`. Three usage modes:
 
-**Proposal**: Add a `sqlcmd plan analyze <file.xml>` subcommand (or `--plan --analyze`) that produces:
-- Statement metadata (elapsed, CPU, memory grant, DOP, compile time, optimizer warnings)
-- Operator tree with estimated vs actual rows and elapsed time per node
-- Top cardinality estimation errors
-- Operator-level warnings and missing statistics
+```bash
+# Analyze a saved plan file
+sqlcmd plan analyze plan.xml
+sqlcmd plan analyze --format json plan.xml
 
-**Go vs Python for this**: Go is fine. The analysis is just XML tree walking — `encoding/xml` handles the ShowPlan namespace cleanly. The main advantage of Go is that it's a single binary with no runtime dependency. The Python scripts are simple enough that a direct port is straightforward (~400 lines of Go, less than the Python once you account for Go's XML unmarshalling structs being reusable).
+# Run a query and analyze its plan (no data output)
+sqlcmd plan analyze -Q "SELECT * FROM orders" --database mydb
 
-The ShowPlan XML schema is well-documented by Microsoft, so typed Go structs would actually be an improvement over Python's string-based attribute access.
+# Normal query + analysis appended
+sqlcmd query --analyze "SELECT * FROM orders"
+sqlcmd query --analyze --plan-file plan.xml "SELECT ..."
 
-**Known bug in current Python scripts**: The operator tree only reads `ActualRows`/`ActualElapsedms` from the first `RunTimeCountersPerThread` element. For parallel plans (DOP > 1), there are multiple thread entries. Correct handling: **sum** `ActualRows` across all threads (rows are partitioned), **max** `ActualElapsedms` (threads run concurrently). The Go port should get this right from the start.
+# Legacy CLI
+sqlcmd -Q "SELECT ..." --analyze
+sqlcmd -Q "SELECT ..." --analyze --plan-file plan.xml
+```
 
-### Output format
+**Analysis output includes**:
+- Statement metadata (cost, optimization level, set options)
+- QueryPlan attributes (DOP, cached plan size, compile time/memory)
+- MemoryGrantInfo, HardwareDependentProperties
+- Plan-level warnings (e.g., PlanAffectingConvert)
+- QueryTimeStats (CPU, elapsed)
+- Optimizer statistics usage count
+- Full operator tree with estimated/actual rows and elapsed time
+- Top 15 cardinality estimation errors sorted by ratio
+- Operator-level warnings (e.g., ColumnsWithNoStatistics)
+- Missing statistics
 
-Default to human-readable text (matching current Python script output). Consider also supporting `--format json` for machine consumption (e.g., for CI pipelines comparing plan metrics across commits).
+**Implementation**: `internal/plan/` is a pure analysis package (no SQL connections, no CLI concerns):
+- `parse.go` — streaming XML parser, CSV unwrapping, multi-document support
+- `analyze.go` — parallel thread aggregation (SUM rows, MAX elapsed), cardinality errors
+- `format_text.go` / `format_json.go` — output formatters
+- `plan_test.go` — 14 tests at 84% coverage against embedded XML fixtures
+
+**Fixed Python bug**: Parallel plans correctly aggregate across all `RunTimeCountersPerThread` elements (SUM `ActualRows`, MAX `ActualElapsedms`).
 
 ## 4. ~~Machine-readable output formats~~ DONE
 
@@ -148,7 +169,7 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 1. ~~**Read-only mode**~~ — DONE
 2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
 3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
-4. **Plan analysis** — nice to have, Python scripts work fine as stopgap
+4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze` flag)
 5. **Better defaults** — small quality of life
 6. **Connection profiles** — convenience, workaround is shell aliases
 7. **MCP server mode** — future, when the above are solid

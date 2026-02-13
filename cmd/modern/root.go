@@ -67,6 +67,7 @@ func (c *Root) SubCommands() []cmdparser.Command {
 	subCommands := []cmdparser.Command{
 		cmdparser.New[*root.Config](dependencies),
 		cmdparser.New[*root.Install](dependencies),
+		cmdparser.New[*root.Plan](dependencies),
 		cmdparser.New[*root.Query](dependencies),
 		cmdparser.New[*root.Start](dependencies),
 		cmdparser.New[*root.Stop](dependencies),

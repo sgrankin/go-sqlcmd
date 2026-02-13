@@ -1,0 +1,50 @@
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.2" Build="15.0.2000.5">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT COUNT(*) FROM large_table" StatementId="1" StatementCompId="1" StatementType="SELECT" StatementSubTreeCost="1.5" StatementOptmLevel="FULL">
+          <StatementSetOptions ANSI_NULLS="true"/>
+          <QueryPlan DegreeOfParallelism="4" CachedPlanSize="32">
+            <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0"/>
+            <QueryTimeStats CpuTime="200" ElapsedTime="60"/>
+            <RelOp NodeId="0" PhysicalOp="Stream Aggregate" LogicalOp="Aggregate" EstimateRows="1">
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="1" ActualElapsedms="60" ActualExecutions="1"/>
+              </RunTimeInformation>
+              <StreamAggregate>
+                <RelOp NodeId="1" PhysicalOp="Parallelism" LogicalOp="Gather Streams" EstimateRows="4">
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="4" ActualElapsedms="58" ActualExecutions="1"/>
+                  </RunTimeInformation>
+                  <Parallelism>
+                    <RelOp NodeId="2" PhysicalOp="Stream Aggregate" LogicalOp="Aggregate" EstimateRows="4">
+                      <RunTimeInformation>
+                        <RunTimeCountersPerThread Thread="1" ActualRows="1" ActualElapsedms="55" ActualExecutions="1"/>
+                        <RunTimeCountersPerThread Thread="2" ActualRows="1" ActualElapsedms="52" ActualExecutions="1"/>
+                        <RunTimeCountersPerThread Thread="3" ActualRows="1" ActualElapsedms="57" ActualExecutions="1"/>
+                        <RunTimeCountersPerThread Thread="4" ActualRows="1" ActualElapsedms="54" ActualExecutions="1"/>
+                      </RunTimeInformation>
+                      <StreamAggregate>
+                        <RelOp NodeId="3" PhysicalOp="Index Scan" LogicalOp="Index Scan" EstimateRows="1000000">
+                          <RunTimeInformation>
+                            <RunTimeCountersPerThread Thread="1" ActualRows="250000" ActualElapsedms="50" ActualExecutions="1"/>
+                            <RunTimeCountersPerThread Thread="2" ActualRows="250000" ActualElapsedms="48" ActualExecutions="1"/>
+                            <RunTimeCountersPerThread Thread="3" ActualRows="250000" ActualElapsedms="52" ActualExecutions="1"/>
+                            <RunTimeCountersPerThread Thread="4" ActualRows="250000" ActualElapsedms="49" ActualExecutions="1"/>
+                          </RunTimeInformation>
+                          <IndexScan>
+                            <Object Table="[large_table]" Index="[IX_id]"/>
+                          </IndexScan>
+                        </RelOp>
+                      </StreamAggregate>
+                    </RelOp>
+                  </Parallelism>
+                </RelOp>
+              </StreamAggregate>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

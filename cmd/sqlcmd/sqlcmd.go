@@ -5,9 +5,11 @@
 package sqlcmd
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"regexp"
@@ -20,6 +22,7 @@ import (
 	"github.com/microsoft/go-mssqldb/azuread"
 	"github.com/microsoft/go-mssqldb/msdsn"
 	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/microsoft/go-sqlcmd/internal/plan"
 	"github.com/microsoft/go-sqlcmd/pkg/console"
 	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
 	"github.com/spf13/cobra"
@@ -88,6 +91,7 @@ type SQLCmdArguments struct {
 	AllowExec                   bool
 	PlanFile                    string
 	Format                      string
+	Analyze                     bool
 	// Keep Help at the end of the list
 	Help  bool
 	Ascii bool
@@ -525,6 +529,7 @@ func setFlags(rootCmd *cobra.Command, args *SQLCmdArguments) {
 	rootCmd.Flags().BoolVar(&args.AllowExec, "allow-exec", false, localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode"))
 	rootCmd.Flags().StringVar(&args.PlanFile, "plan-file", "", localizer.Sprintf("Write execution plan XML to the specified file"))
 	rootCmd.Flags().StringVar(&args.Format, "format", "", localizer.Sprintf("Output format: csv, jsonl"))
+	rootCmd.Flags().BoolVar(&args.Analyze, "analyze", false, localizer.Sprintf("Analyze the execution plan after running the query"))
 }
 
 func setScriptVariable(v string) string {
@@ -864,13 +869,24 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 	s := sqlcmd.New(line, wd, vars)
 	s.ReadOnly = !args.ReadWrite
 	s.AllowExec = args.AllowExec
-	if args.PlanFile != "" {
+	var planBuf bytes.Buffer
+	switch {
+	case args.PlanFile != "" && args.Analyze:
+		pf, pfErr := os.Create(args.PlanFile)
+		if pfErr != nil {
+			return 1, localizer.Errorf("failed to create plan file '%s': %v", args.PlanFile, pfErr)
+		}
+		defer pf.Close()
+		s.PlanFile = io.MultiWriter(pf, &planBuf)
+	case args.PlanFile != "":
 		pf, pfErr := os.Create(args.PlanFile)
 		if pfErr != nil {
 			return 1, localizer.Errorf("failed to create plan file '%s': %v", args.PlanFile, pfErr)
 		}
 		defer pf.Close()
 		s.PlanFile = pf
+	case args.Analyze:
+		s.PlanFile = &planBuf
 	}
 	// We want the default behavior on ctrl-c - exit the process
 	s.SetupCloseHandler()
@@ -976,6 +992,16 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 					break
 				}
 			}
+		}
+	}
+	if args.Analyze && planBuf.Len() > 0 {
+		plans, parseErr := plan.Parse(planBuf.Bytes())
+		if parseErr != nil {
+			fmt.Fprintf(os.Stderr, "Error parsing plan: %v\n", parseErr)
+		} else {
+			result := plan.Analyze(plans)
+			fmt.Fprintln(os.Stdout)
+			plan.FormatText(os.Stdout, result)
 		}
 	}
 	s.SetOutput(nil)

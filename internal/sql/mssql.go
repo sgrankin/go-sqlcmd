@@ -5,6 +5,7 @@ package sql
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -34,12 +35,21 @@ func (m *mssql) Connect(
 	m.sqlcmd = sqlcmd.New(m.console, "", v)
 	m.sqlcmd.ReadOnly = m.readOnly
 	m.sqlcmd.AllowExec = m.allowExec
-	if m.planFile != "" {
+	switch {
+	case m.planFile != "" && m.planBuffer != nil:
+		pf, pfErr := os.Create(m.planFile)
+		if pfErr != nil {
+			checkErr(fmt.Errorf("failed to create plan file '%s': %w", m.planFile, pfErr))
+		}
+		m.sqlcmd.PlanFile = io.MultiWriter(pf, m.planBuffer)
+	case m.planFile != "":
 		pf, pfErr := os.Create(m.planFile)
 		if pfErr != nil {
 			checkErr(fmt.Errorf("failed to create plan file '%s': %w", m.planFile, pfErr))
 		}
 		m.sqlcmd.PlanFile = pf
+	case m.planBuffer != nil:
+		m.sqlcmd.PlanFile = m.planBuffer
 	}
 	switch m.format {
 	case "csv":
@@ -104,6 +114,19 @@ func (m *mssql) Query(text string) {
 		}
 	}
 }
+
+func (m *mssql) QueryToWriter(text string, w io.Writer) {
+	m.sqlcmd.Query = text
+	m.sqlcmd.SetOutput(nopWriteCloser{w})
+	m.sqlcmd.SetError(os.Stderr)
+	trace("Running query: %v", text)
+	err := m.sqlcmd.Run(true, false)
+	checkErr(err)
+}
+
+type nopWriteCloser struct{ io.Writer }
+
+func (nopWriteCloser) Close() error { return nil }
 
 func (m *mssql) ScalarString(query string) string {
 	buf := buffer.NewMemoryBuffer()

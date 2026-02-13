@@ -1,0 +1,42 @@
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.2" Build="15.0.2000.5">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT * FROM orders WHERE customer_id = 42" StatementId="1" StatementCompId="1" StatementType="SELECT" StatementSubTreeCost="0.05" StatementOptmLevel="FULL">
+          <StatementSetOptions ANSI_NULLS="true" ANSI_PADDING="true"/>
+          <QueryPlan DegreeOfParallelism="1" CachedPlanSize="24" CompileTime="5" CompileCPU="5" CompileMemory="256">
+            <MemoryGrantInfo SerialRequiredMemory="512" SerialDesiredMemory="1024"/>
+            <QueryTimeStats CpuTime="3" ElapsedTime="5"/>
+            <OptimizerStatsUsage>
+              <StatisticsInfo Table="[orders]" Statistics="[_WA_Sys_customer_id]" ModificationCount="0" SamplingPercent="100" LastUpdate="2024-01-01T00:00:00"/>
+              <StatisticsInfo Table="[orders]" Statistics="[PK_orders]" ModificationCount="0" SamplingPercent="100" LastUpdate="2024-01-01T00:00:00"/>
+            </OptimizerStatsUsage>
+            <RelOp NodeId="0" PhysicalOp="Nested Loops" LogicalOp="Inner Join" EstimateRows="10" EstimatedTotalSubtreeCost="0.05">
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="8" ActualElapsedms="5" ActualExecutions="1"/>
+              </RunTimeInformation>
+              <NestedLoops>
+                <RelOp NodeId="1" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="10" EstimatedTotalSubtreeCost="0.01">
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="8" ActualElapsedms="2" ActualExecutions="1"/>
+                  </RunTimeInformation>
+                  <IndexScan>
+                    <Object Table="[orders]" Index="[IX_customer_id]" Schema="[dbo]"/>
+                  </IndexScan>
+                </RelOp>
+                <RelOp NodeId="2" PhysicalOp="Clustered Index Seek" LogicalOp="Clustered Index Seek" EstimateRows="1" EstimatedTotalSubtreeCost="0.003">
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="8" ActualElapsedms="3" ActualExecutions="8"/>
+                  </RunTimeInformation>
+                  <IndexScan>
+                    <Object Table="[orders]" Index="[PK_orders]" Schema="[dbo]"/>
+                  </IndexScan>
+                </RelOp>
+              </NestedLoops>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

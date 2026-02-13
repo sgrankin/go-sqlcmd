@@ -1,0 +1,54 @@
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.2" Build="15.0.2000.5">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT * FROM t1 JOIN t2 ON t1.id = t2.id WHERE t1.val > 100" StatementId="1" StatementCompId="1" StatementType="SELECT" StatementSubTreeCost="5.0" StatementOptmLevel="FULL">
+          <StatementSetOptions ANSI_NULLS="true"/>
+          <QueryPlan DegreeOfParallelism="1" CachedPlanSize="24">
+            <Warnings>
+              <PlanAffectingConvert ConvertIssue="Cardinality Estimate" Expression="CONVERT_IMPLICIT(int,[t2].[id],0)"/>
+            </Warnings>
+            <MissingIndexes>
+              <MissingIndexGroup Impact="95.5">
+                <MissingIndex Database="[mydb]" Schema="[dbo]" Table="[t1]">
+                  <ColumnGroup Usage="EQUALITY">
+                    <Column Name="[val]" ColumnId="2"/>
+                  </ColumnGroup>
+                </MissingIndex>
+              </MissingIndexGroup>
+            </MissingIndexes>
+            <MemoryGrantInfo SerialRequiredMemory="512" SerialDesiredMemory="1024"/>
+            <RelOp NodeId="0" PhysicalOp="Hash Match" LogicalOp="Inner Join" EstimateRows="50000" EstimatedTotalSubtreeCost="5.0">
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="1200" ActualElapsedms="100" ActualExecutions="1"/>
+              </RunTimeInformation>
+              <Hash>
+                <RelOp NodeId="1" PhysicalOp="Table Scan" LogicalOp="Table Scan" EstimateRows="10000" EstimatedTotalSubtreeCost="1.0">
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="500" ActualElapsedms="30" ActualExecutions="1"/>
+                  </RunTimeInformation>
+                  <Warnings>
+                    <ColumnsWithNoStatistics>
+                      <ColumnReference Table="[t1]" Column="val"/>
+                    </ColumnsWithNoStatistics>
+                  </Warnings>
+                  <TableScan>
+                    <Object Table="[t1]"/>
+                  </TableScan>
+                </RelOp>
+                <RelOp NodeId="2" PhysicalOp="Index Scan" LogicalOp="Index Scan" EstimateRows="50000" EstimatedTotalSubtreeCost="2.0">
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="1200" ActualElapsedms="60" ActualExecutions="1"/>
+                  </RunTimeInformation>
+                  <IndexScan>
+                    <Object Table="[t2]" Index="[IX_id]"/>
+                  </IndexScan>
+                </RelOp>
+              </Hash>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>
