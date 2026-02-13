@@ -59,9 +59,10 @@ func convertOperator(relop *RelOp) *Operator {
 		Warnings:   convertWarnings(relop.Warnings),
 	}
 
-	// Aggregate across threads: SUM ActualRows, MAX ElapsedMs
+	// Aggregate across threads: SUM ActualRows/ActualExecs, MAX ElapsedMs
 	for _, t := range relop.Threads {
 		op.ActualRows += t.ActualRows
+		op.ActualExecs += t.ActualExecs
 		if t.ActualElapsed > op.ElapsedMs {
 			op.ElapsedMs = t.ActualElapsed
 		}
@@ -120,12 +121,19 @@ func computeCardinalityErrors(op *Operator) []CardinalityError {
 
 func collectCardErrors(op *Operator, errs *[]CardinalityError) {
 	if op.EstRows > 0 && op.ActualRows > 0 {
+		// EstimateRows is per-execution; ActualRows is total across all executions.
+		// Scale estimate by ActualExecs to compare apples-to-apples.
+		execs := op.ActualExecs
+		if execs < 1 {
+			execs = 1
+		}
+		totalEstRows := op.EstRows * float64(execs)
 		ratio := math.Max(
-			float64(op.ActualRows)/op.EstRows,
-			op.EstRows/float64(op.ActualRows),
+			float64(op.ActualRows)/totalEstRows,
+			totalEstRows/float64(op.ActualRows),
 		)
 		direction := "under"
-		if op.EstRows > float64(op.ActualRows) {
+		if totalEstRows > float64(op.ActualRows) {
 			direction = "over"
 		}
 		*errs = append(*errs, CardinalityError{

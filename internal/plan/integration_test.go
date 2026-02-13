@@ -117,7 +117,6 @@ func TestFormatTextRealPlan(t *testing.T) {
 	assert.Contains(t, output, "granted")
 	assert.Contains(t, output, "used")
 	assert.Contains(t, output, "Operator Tree:")
-	assert.Contains(t, output, "★")
 
 	t.Logf("FormatText output:\n%s", output)
 }

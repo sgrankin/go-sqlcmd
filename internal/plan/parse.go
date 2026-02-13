@@ -49,6 +49,7 @@ type RelOp struct {
 type threadInfo struct {
 	ActualRows    int64
 	ActualElapsed int64
+	ActualExecs   int64
 }
 
 type xmlWarning struct {
@@ -269,6 +270,7 @@ func parseRelOp(decoder *xml.Decoder, start xml.StartElement) (*RelOp, error) {
 				op.Threads = append(op.Threads, threadInfo{
 					ActualRows:    attrInt64(a, "ActualRows"),
 					ActualElapsed: attrInt64(a, "ActualElapsedms"),
+					ActualExecs:   attrInt64(a, "ActualExecutions"),
 				})
 			case "Object":
 				op.ObjectInfo = formatObjectInfo(attrsToMap(t.Attr))

@@ -31,15 +31,16 @@ type Warning struct {
 
 // Operator represents a node in the execution plan operator tree.
 type Operator struct {
-	NodeID     int
-	PhysicalOp string
-	LogicalOp  string
-	EstRows    float64
-	ActualRows int64  // SUM across threads
-	ElapsedMs  int64  // MAX across threads
-	ObjectInfo string // e.g. "[Table.Index]"
-	Warnings   []Warning
-	Children   []*Operator
+	NodeID      int
+	PhysicalOp  string
+	LogicalOp   string
+	EstRows     float64
+	ActualRows  int64  // SUM across threads
+	ActualExecs int64  // SUM across threads
+	ElapsedMs   int64  // MAX across threads
+	ObjectInfo  string // e.g. "orders.PK_orders"
+	Warnings    []Warning
+	Children    []*Operator
 }
 
 // CardinalityError reports the estimation error for a single operator.

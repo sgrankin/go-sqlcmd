@@ -125,8 +125,11 @@ func TestAnalyzeActualPlan(t *testing.T) {
 	assert.Equal(t, int64(8), stmt.Root.ActualRows)
 	assert.Equal(t, int64(5), stmt.Root.ElapsedMs)
 
-	// Cardinality errors should exist for nodes with est != actual
+	// Cardinality errors exist but are small (all < 2x after accounting for ActualExecutions)
 	assert.NotEmpty(t, stmt.CardErrors)
+	for _, e := range stmt.CardErrors {
+		assert.Less(t, e.Ratio, 2.0, "Node %d should have small ratio after execution scaling", e.NodeID)
+	}
 }
 
 func TestAnalyzeParallelAggregation(t *testing.T) {
@@ -381,6 +384,37 @@ func TestMultiplePlanDocuments(t *testing.T) {
 	plans, err := Parse([]byte(combined))
 	require.NoError(t, err)
 	require.Len(t, plans, 2)
+}
+
+func TestAnalyzeLargeActualPlan(t *testing.T) {
+	data := readTestdata(t, "large_actual_plan.xml")
+	plans, err := Parse(data)
+	require.NoError(t, err)
+	require.NotEmpty(t, plans)
+
+	result := Analyze(plans)
+	require.NotEmpty(t, result.Statements)
+
+	stmt := result.Statements[0]
+	assert.True(t, stmt.HasActualInfo)
+
+	// Verify no false cardinality errors from multi-execution operators.
+	// Node 147 is a PK seek on the inner side of a nested loops join:
+	// est=1 per execution, 12337 executions, 12337 actual rows → perfect estimate.
+	for _, e := range stmt.CardErrors {
+		if e.NodeID == 147 {
+			assert.Less(t, e.Ratio, 2.0,
+				"Node 147 (PK seek, 1 row per exec) should not be flagged as a cardinality error")
+		}
+	}
+
+	// Verify FormatText doesn't flag it
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+	assert.NotContains(t, output, "12337x")
+
+	t.Logf("FormatText output:\n%s", output)
 }
 
 func TestFormatTextMultiStatement(t *testing.T) {
