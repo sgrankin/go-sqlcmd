@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
 )
 
 func (t *tool) Init() {

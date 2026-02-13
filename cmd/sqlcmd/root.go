@@ -6,10 +6,10 @@ package main
 import (
 	"runtime"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // Root type implements the very top-level command for sqlcmd (which contains
@@ -43,7 +43,7 @@ func (c *Root) DefineCommand(...cmdparser.CommandOptions) {
 			Steps: []string{"sqlcmd config view", "sqlcmd config cs"}},
 	}
 
-	const feedbackUrl = "https://github.com/microsoft/go-sqlcmd/issues/new"
+	const feedbackUrl = "https://github.com/sgrankin/go-sqlcmd/issues/new"
 
 	commandOptions := cmdparser.CommandOptions{
 		Use: "sqlcmd",

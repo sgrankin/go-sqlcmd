@@ -14,8 +14,8 @@ import (
 
 	"github.com/google/uuid"
 	mssql "github.com/microsoft/go-mssqldb"
-	"github.com/microsoft/go-sqlcmd/internal/color"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/color"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 const (

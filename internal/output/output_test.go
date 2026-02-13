@@ -5,7 +5,7 @@ package output
 
 import (
 	"errors"
-	"github.com/microsoft/go-sqlcmd/internal/output/verbosity"
+	"github.com/sgrankin/go-sqlcmd/internal/output/verbosity"
 	"github.com/stretchr/testify/assert"
 	"runtime"
 	"testing"

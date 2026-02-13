@@ -5,8 +5,8 @@ package output
 
 import (
 	"fmt"
-	"github.com/microsoft/go-sqlcmd/internal/output/formatter"
-	"github.com/microsoft/go-sqlcmd/internal/test"
+	"github.com/sgrankin/go-sqlcmd/internal/output/formatter"
+	"github.com/sgrankin/go-sqlcmd/internal/test"
 	"os"
 )
 

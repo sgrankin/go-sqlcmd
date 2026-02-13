@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 	"github.com/peterh/liner"
 )
 

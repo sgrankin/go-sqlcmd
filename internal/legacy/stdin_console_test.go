@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 	"github.com/stretchr/testify/assert"
 )
 

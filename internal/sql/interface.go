@@ -6,7 +6,7 @@ package sql
 import (
 	"io"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 )
 
 type Sql interface {

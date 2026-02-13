@@ -4,9 +4,9 @@
 package config
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

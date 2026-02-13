@@ -1,7 +1,7 @@
 package main
 
 import (
-	sqlcmdlinter "github.com/microsoft/go-sqlcmd/pkg/sqlcmd-linter"
+	sqlcmdlinter "github.com/sgrankin/go-sqlcmd/pkg/sqlcmd-linter"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 

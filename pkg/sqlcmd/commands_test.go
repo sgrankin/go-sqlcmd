@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/internal/color"
+	"github.com/sgrankin/go-sqlcmd/internal/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

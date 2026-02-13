@@ -1,6 +1,6 @@
 package dependency
 
-import "github.com/microsoft/go-sqlcmd/internal/output"
+import "github.com/sgrankin/go-sqlcmd/internal/output"
 
 type Options struct {
 	EndOfLine string

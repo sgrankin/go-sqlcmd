@@ -160,7 +160,7 @@ The project supports creating SQL Server instances using Docker or Podman:
 When adding user-facing strings to the code, use the `localizer` package:
 
 ```go
-import "github.com/microsoft/go-sqlcmd/internal/localizer"
+import "github.com/sgrankin/go-sqlcmd/internal/localizer"
 
 // Use localizer.Sprintf for formatted strings
 message := localizer.Sprintf("This is a localizable message with %s", value)

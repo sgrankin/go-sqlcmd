@@ -4,8 +4,8 @@
 package main
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

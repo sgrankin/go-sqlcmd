@@ -5,8 +5,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/microsoft/go-sqlcmd/internal/net"
-	"github.com/microsoft/go-sqlcmd/internal/secret"
+	"github.com/sgrankin/go-sqlcmd/internal/net"
+	"github.com/sgrankin/go-sqlcmd/internal/secret"
 )
 
 var encryptCallback func(plainText string, encryptionMethod string) (cipherText string)

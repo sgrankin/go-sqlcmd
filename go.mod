@@ -1,4 +1,4 @@
-module github.com/microsoft/go-sqlcmd
+module github.com/sgrankin/go-sqlcmd
 
 go 1.26
 

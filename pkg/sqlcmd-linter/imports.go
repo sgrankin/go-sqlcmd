@@ -25,7 +25,7 @@ var AllowedImports = map[string][]string{
 	`"github.com/google/uuid`:          {},
 	`"github.com/peterh/liner`:         {`pkg/console`},
 	`"github.com/microsoft/go-mssqldb`: {},
-	`"github.com/microsoft/go-sqlcmd`:  {},
+	`"github.com/sgrankin/go-sqlcmd`:  {},
 	`"github.com/spf13/cobra`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/spf13/pflag`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/spf13/viper`:          {`internal/legacy`, `cmd/sqlcmd`},
@@ -58,7 +58,7 @@ func runImports(pass *analysis.Pass) (interface{}, error) {
 }
 
 func isValidInternalImport(pkg string) bool {
-	return !strings.HasPrefix(pkg, `"github.com/microsoft/go-sqlcmd/pkg`) && !strings.HasPrefix(pkg, `"github.com/microsoft/go-sqlcmd/cmd`)
+	return !strings.HasPrefix(pkg, `"github.com/sgrankin/go-sqlcmd/pkg`) && !strings.HasPrefix(pkg, `"github.com/sgrankin/go-sqlcmd/cmd`)
 }
 
 func isValidExternalImport(pkg string, filename string) bool {

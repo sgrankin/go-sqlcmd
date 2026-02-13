@@ -6,7 +6,7 @@ package sql
 import (
 	"io"
 
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 )
 
 // mssql implements for SQL Server

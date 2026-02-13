@@ -4,11 +4,11 @@
 package install
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/install/mssql"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/install/mssql"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 )
 
 // Mssql implements the `sqlcmd install mssql` command and sub-commands

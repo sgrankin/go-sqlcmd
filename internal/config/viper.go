@@ -5,7 +5,7 @@ package config
 
 import (
 	"bytes"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )

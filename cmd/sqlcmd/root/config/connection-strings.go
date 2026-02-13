@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/container"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
-	"github.com/microsoft/go-sqlcmd/internal/sql"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/container"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/sql"
 
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
-	"github.com/microsoft/go-sqlcmd/internal/secret"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/secret"
 )
 
 // ConnectionStrings implements the `sqlcmd config connection-strings` command
@@ -126,7 +126,7 @@ func (c *ConnectionStrings) run() {
 
 func (c *ConnectionStrings) trustServerCertificate(endpoint sqlconfig.Endpoint) (trustServerCertificate bool) {
 	// Per issue:
-	//	https://github.com/microsoft/go-sqlcmd/issues/249
+	//	https://github.com/sgrankin/go-sqlcmd/issues/249
 	// set trustServerCertificate to "False" if connecting to Azure SQL
 	trustServerCertificate = true
 	if strings.HasSuffix(

@@ -4,7 +4,7 @@
 package mssql
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
 	"testing"
 )
 

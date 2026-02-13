@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mssql "github.com/microsoft/go-mssqldb"
-	"github.com/microsoft/go-sqlcmd/internal/color"
+	"github.com/sgrankin/go-sqlcmd/internal/color"
 	"github.com/stretchr/testify/assert"
 )
 

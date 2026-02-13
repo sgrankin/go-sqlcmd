@@ -4,7 +4,7 @@
 package cmdparser
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
 	"github.com/spf13/cobra"
 )
 

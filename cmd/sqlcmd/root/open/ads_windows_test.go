@@ -4,11 +4,11 @@
 package open
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
-	"github.com/microsoft/go-sqlcmd/internal/credman"
-	"github.com/microsoft/go-sqlcmd/internal/output"
-	"github.com/microsoft/go-sqlcmd/internal/secret"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/credman"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/secret"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

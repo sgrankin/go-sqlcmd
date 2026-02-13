@@ -4,9 +4,9 @@
 package config
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // GetContexts implements the `sqlcmd config get-contexts` command

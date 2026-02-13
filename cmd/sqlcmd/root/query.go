@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
-	"github.com/microsoft/go-sqlcmd/internal/plan"
-	"github.com/microsoft/go-sqlcmd/internal/sql"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/plan"
+	"github.com/sgrankin/go-sqlcmd/internal/sql"
 )
 
 // Query defines the `sqlcmd query` command

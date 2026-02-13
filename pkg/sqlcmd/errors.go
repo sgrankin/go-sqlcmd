@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // ErrorPrefix is the prefix for all sqlcmd-generated errors

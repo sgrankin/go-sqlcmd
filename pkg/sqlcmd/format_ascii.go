@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/microsoft/go-sqlcmd/internal/color"
+	"github.com/sgrankin/go-sqlcmd/internal/color"
 	"golang.org/x/term"
 )
 

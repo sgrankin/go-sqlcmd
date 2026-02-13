@@ -4,8 +4,8 @@
 package open
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
 )
 
 // Type Ads is used to implement the "open ads" which launches Azure

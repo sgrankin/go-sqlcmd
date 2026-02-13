@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
-	"github.com/microsoft/go-sqlcmd/internal/io/folder"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/io/folder"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 )
 
 var config Sqlconfig

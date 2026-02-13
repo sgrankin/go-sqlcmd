@@ -6,10 +6,10 @@ package root
 import (
 	"fmt"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/config"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/config"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 )
 
 // Config defines the `sqlcmd config` sub-commands

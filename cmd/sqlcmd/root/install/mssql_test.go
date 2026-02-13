@@ -5,10 +5,10 @@ package install
 
 import (
 	"fmt"
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/install/mssql"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/container"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/install/mssql"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/container"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -21,8 +21,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/output/verbosity"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/output/verbosity"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 	"github.com/pkg/errors"
 )
 

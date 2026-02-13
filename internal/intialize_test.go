@@ -4,7 +4,7 @@
 package internal
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

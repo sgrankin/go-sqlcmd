@@ -6,7 +6,7 @@ package sql
 import (
 	"io"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 )
 
 // Connect is a mock implementation used to speed up unit testing of other units

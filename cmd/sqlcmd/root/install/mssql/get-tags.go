@@ -4,9 +4,9 @@
 package mssql
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/container"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/container"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 type GetTags struct {

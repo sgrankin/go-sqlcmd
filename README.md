@@ -172,7 +172,7 @@ The following switches have different behavior in this version of `sqlcmd` compa
 ### Switches not available in the new sqlcmd (go-sqlcmd) yet
 
 There are a few switches yet to be implemented in the new `sqlcmd` (go-sqlcmd) compared
-to the original ODBC based `sqlcmd`, discussion [#293](https://github.com/microsoft/go-sqlcmd/discussions/292) 
+to the original ODBC based `sqlcmd`, discussion [#293](https://github.com/sgrankin/go-sqlcmd/discussions/292) 
 lists these switches. Please provide feedback in the discussion on which 
 switches are most important to you to have implemented next in the new sqlcmd.
 
@@ -387,13 +387,13 @@ trademarks or logos is subject to and must follow
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
 
-[Community Buzz]: https://github.com/microsoft/go-sqlcmd/discussions/367
+[Community Buzz]: https://github.com/sgrankin/go-sqlcmd/discussions/367
 [Homebrew]: https://formulae.brew.sh/formula/sqlcmd
 [Linuxbrew]: https://docs.brew.sh/Homebrew-on-Linux
 [Winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/m/Microsoft/Sqlcmd
 [Choco]: https://community.chocolatey.org/packages/sqlcmd
 [Docker]: https://www.docker.com/products/docker-desktop/
 [Podman]: https://podman-desktop.io/downloads/
-[releases page]: https://github.com/microsoft/go-sqlcmd/releases/latest
+[releases page]: https://github.com/sgrankin/go-sqlcmd/releases/latest
 [go-mssqldb]: https://github.com/microsoft/go-mssqldb
 [go-sqlcmd-utility]: https://docs.microsoft.com/sql/tools/go-sqlcmd-utility

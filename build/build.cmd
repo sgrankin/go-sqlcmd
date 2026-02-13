@@ -48,7 +48,7 @@ REM Generate NOTICE
 if not exist %gopath%\bin\go-licenses.exe (
     go install github.com/google/go-licenses@latest
 )
-go-licenses report github.com/microsoft/go-sqlcmd/cmd/sqlcmd --template build\NOTICE.tpl --ignore github.com/microsoft > %~dp0notice.txt 2>nul
+go-licenses report github.com/sgrankin/go-sqlcmd/cmd/sqlcmd --template build\NOTICE.tpl --ignore github.com/microsoft > %~dp0notice.txt 2>nul
 copy %~dp0NOTICE.header + %~dp0notice.txt %~dp0..\NOTICE.md
 del %~dp0notice.txt
 

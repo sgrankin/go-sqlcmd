@@ -4,9 +4,9 @@
 package root
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/install"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/install"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // Install defines the `sqlcmd install` sub-commands

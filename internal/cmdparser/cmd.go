@@ -5,11 +5,11 @@ package cmdparser
 
 import (
 	"fmt"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
 	"github.com/spf13/cobra"
 )
 

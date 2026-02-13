@@ -12,21 +12,21 @@
 package main
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
-	"github.com/microsoft/go-sqlcmd/internal/output"
-	"github.com/microsoft/go-sqlcmd/internal/output/verbosity"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/internal"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/output/verbosity"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 	"github.com/spf13/cobra"
 	"path"
 
 	"os"
 
-	legacyCmd "github.com/microsoft/go-sqlcmd/internal/legacy"
+	legacyCmd "github.com/sgrankin/go-sqlcmd/internal/legacy"
 )
 
 var rootCmd *Root

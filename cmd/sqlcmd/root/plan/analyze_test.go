@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

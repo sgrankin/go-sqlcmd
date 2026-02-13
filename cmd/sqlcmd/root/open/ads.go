@@ -8,12 +8,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/container"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
-	"github.com/microsoft/go-sqlcmd/internal/tools"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/container"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/internal/tools"
 )
 
 // Ads implements the `sqlcmd open ads` command. It opens

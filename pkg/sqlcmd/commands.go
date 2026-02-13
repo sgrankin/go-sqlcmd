@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/color"
+	"github.com/sgrankin/go-sqlcmd/internal/color"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 )

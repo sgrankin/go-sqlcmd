@@ -4,7 +4,7 @@
 package sql
 
 import "testing"
-import . "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+import . "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 
 func TestMockConnect(t *testing.T) {
 	mockObj := mock{}

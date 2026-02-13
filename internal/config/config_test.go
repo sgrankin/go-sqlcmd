@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/output"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
-	"github.com/microsoft/go-sqlcmd/internal/secret"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/secret"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -5,11 +5,11 @@ package main
 
 import (
 	"errors"
-	"github.com/microsoft/go-sqlcmd/internal/buffer"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser/dependency"
-	"github.com/microsoft/go-sqlcmd/internal/output"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/buffer"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser/dependency"
+	"github.com/sgrankin/go-sqlcmd/internal/output"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

@@ -9,11 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/microsoft/go-sqlcmd/internal/buffer"
-	"github.com/microsoft/go-sqlcmd/pkg/console"
+	"github.com/sgrankin/go-sqlcmd/internal/buffer"
+	"github.com/sgrankin/go-sqlcmd/pkg/console"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 )
 
 // Connect is used to connect to a SQL Server using the specified endpoint

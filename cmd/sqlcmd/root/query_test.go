@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/config"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/config"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
 )
 
 // TestQuery runs a sanity test of `sqlcmd query` using the local instance on 1433

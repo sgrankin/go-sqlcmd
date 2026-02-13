@@ -4,8 +4,8 @@
 package file_test
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
-	"github.com/microsoft/go-sqlcmd/internal/io/folder"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/io/folder"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"

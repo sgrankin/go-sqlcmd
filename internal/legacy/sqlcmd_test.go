@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/microsoft/go-mssqldb/azuread"
-	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -406,7 +406,7 @@ func TestInitQueryAndQueryExecutesQuery(t *testing.T) {
 	}
 }
 
-// Test to verify fix for issue: https://github.com/microsoft/go-sqlcmd/issues/98
+// Test to verify fix for issue: https://github.com/sgrankin/go-sqlcmd/issues/98
 //  1. Verify when -b is passed in (ExitOnError), we don't always get an error (even when input is good)
 //     2, Verify when the input is actually bad, we do get an error
 func TestExitOnError(t *testing.T) {

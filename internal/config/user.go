@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 )
 
 // AddUser adds a new user to the configuration.

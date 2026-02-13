@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/internal/tools/tool"
+	"github.com/sgrankin/go-sqlcmd/internal/tools/tool"
 )
 
 type TestTool struct {

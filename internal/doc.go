@@ -38,7 +38,7 @@ Do and Do Not:
        package config
 
        import (
-         "github.com/microsoft/go-sqlcmd/cmd/internal/secret"
+         "github.com/sgrankin/go-sqlcmd/cmd/internal/secret"
        )
 
      Do instead:

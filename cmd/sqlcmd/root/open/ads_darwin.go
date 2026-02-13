@@ -4,9 +4,9 @@
 package open
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // Type Ads is used to implement the "open ads" which launches Azure
@@ -17,7 +17,7 @@ type Ads struct {
 }
 
 func (c *Ads) persistCredentialForAds(hostname string, endpoint sqlconfig.Endpoint, user *sqlconfig.User) {
-	// UNDONE: See - https://github.com/microsoft/go-sqlcmd/issues/257
+	// UNDONE: See - https://github.com/sgrankin/go-sqlcmd/issues/257
 }
 
 // BUG(stuartpa): There is a bug in ADS that is naming credentials in Mac KeyChain
@@ -33,5 +33,5 @@ func (c *Ads) displayPreLaunchInfo() {
 	output.Info("")
 	output.Info("\tsqlcmd config connection-strings")
 	output.Info("")
-	output.Info("(see issue for more information: https://github.com/microsoft/go-sqlcmd/issues/257)")
+	output.Info("(see issue for more information: https://github.com/sgrankin/go-sqlcmd/issues/257)")
 }

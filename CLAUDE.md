@@ -86,7 +86,7 @@ This is a **jj** (Jujutsu) repo colocated with git.
 
 ## Code Conventions
 
-- Go 1.26, module path `github.com/microsoft/go-sqlcmd` (upstream module path retained)
+- Go 1.26, module path `github.com/sgrankin/go-sqlcmd`
 - Tests use `testify/assert` and `testify/require`
 - Build version injected via `-ldflags="-X main.version=..."`
 - Custom linter in `cmd/sqlcmd-linter/` (import and assertion checks)

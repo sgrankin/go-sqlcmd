@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	_ "github.com/microsoft/go-sqlcmd/internal/translations"
+	_ "github.com/sgrankin/go-sqlcmd/internal/translations"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )

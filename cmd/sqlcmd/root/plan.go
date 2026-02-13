@@ -1,9 +1,9 @@
 package root
 
 import (
-	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/root/plan"
-	"github.com/microsoft/go-sqlcmd/internal/cmdparser"
-	"github.com/microsoft/go-sqlcmd/internal/localizer"
+	"github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/root/plan"
+	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
+	"github.com/sgrankin/go-sqlcmd/internal/localizer"
 )
 
 // Plan defines the `sqlcmd plan` sub-commands

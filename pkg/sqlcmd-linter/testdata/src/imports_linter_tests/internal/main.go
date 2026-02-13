@@ -6,7 +6,7 @@ package main
 import (
 	_ "fmt"
 
-	_ "github.com/microsoft/go-sqlcmd/pkg/sqlcmd" // want "Internal packages should not import \"github.com/microsoft/go-sqlcmd/pkg/sqlcmd\""
+	_ "github.com/sgrankin/go-sqlcmd/pkg/sqlcmd" // want "Internal packages should not import \"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd\""
 )
 
 var X = 1

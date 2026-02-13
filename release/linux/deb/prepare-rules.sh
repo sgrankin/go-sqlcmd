@@ -55,7 +55,7 @@ Priority: extra
 Maintainer: sqlcmd tools team <dpgswdist@microsoft.com>
 Build-Depends: debhelper (>= 9)
 Standards-Version: 3.9.5
-Homepage: https://github.com/microsoft/go-sqlcmd
+Homepage: https://github.com/sgrankin/go-sqlcmd
 
 Package: sqlcmd
 Architecture: all

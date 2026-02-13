@@ -4,7 +4,7 @@
 package config
 
 import (
-	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

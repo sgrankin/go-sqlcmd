@@ -4,8 +4,8 @@
 package tool
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
-	"github.com/microsoft/go-sqlcmd/internal/test"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/test"
 )
 
 type AzureDataStudio struct {

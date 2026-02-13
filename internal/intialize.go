@@ -4,14 +4,14 @@
 package internal
 
 import (
-	"github.com/microsoft/go-sqlcmd/internal/config"
-	"github.com/microsoft/go-sqlcmd/internal/container"
-	"github.com/microsoft/go-sqlcmd/internal/http"
-	"github.com/microsoft/go-sqlcmd/internal/io/file"
-	"github.com/microsoft/go-sqlcmd/internal/net"
-	"github.com/microsoft/go-sqlcmd/internal/pal"
-	"github.com/microsoft/go-sqlcmd/internal/secret"
-	"github.com/microsoft/go-sqlcmd/internal/sql"
+	"github.com/sgrankin/go-sqlcmd/internal/config"
+	"github.com/sgrankin/go-sqlcmd/internal/container"
+	"github.com/sgrankin/go-sqlcmd/internal/http"
+	"github.com/sgrankin/go-sqlcmd/internal/io/file"
+	"github.com/sgrankin/go-sqlcmd/internal/net"
+	"github.com/sgrankin/go-sqlcmd/internal/pal"
+	"github.com/sgrankin/go-sqlcmd/internal/secret"
+	"github.com/sgrankin/go-sqlcmd/internal/sql"
 )
 
 type InitializeOptions struct {

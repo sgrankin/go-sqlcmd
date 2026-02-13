@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/microsoft/go-sqlcmd/internal/sqlservertest"
+	"github.com/sgrankin/go-sqlcmd/internal/sqlservertest"
 )
 
 func TestMain(m *testing.M) {

@@ -49,14 +49,14 @@ func testKeywordComplete(t testing.TB, c completer) {
 // With 179 keywords:
 /*goos: windows
 goarch: amd64
-pkg: github.com/microsoft/go-sqlcmd/pkg/console
+pkg: github.com/sgrankin/go-sqlcmd/pkg/console
 cpu: AMD Ryzen 9 5950X 16-Core Processor
 BenchmarkAutoComplete
 BenchmarkAutoComplete-32                  491948              2481 ns/op             586 B/op         31 allocs/op
 BenchmarkPrefixTreeAutoComplete
 BenchmarkPrefixTreeAutoComplete-32        383217              3124 ns/op            1450 B/op         37 allocs/op
 PASS
-ok      github.com/microsoft/go-sqlcmd/pkg/console      2.746s
+ok      github.com/sgrankin/go-sqlcmd/pkg/console      2.746s
 */
 func prefixTreeCompleteLine(line string) []string {
 	idx := strings.LastIndexAny(line, " ;") + 1
