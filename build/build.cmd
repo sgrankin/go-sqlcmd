@@ -26,7 +26,7 @@ if not exist %gopath%\bin\gotext.exe (
 )
 
 REM go-winres likes to append instead of overwrite so delete existing resource file
-del %~dp0..\cmd\modern\*.syso
+del %~dp0..\cmd\sqlcmd\*.syso
 
 REM generates translations file and resources
 go generate %~dp0../... 2> %~dp0generate.txt
@@ -42,20 +42,20 @@ echo Fix any conflicting localizable strings:
 endlocal
 
 REM Generates sqlcmd.exe in the root dir of the repo
-go build -o %~dp0..\sqlcmd.exe -ldflags="-X main.version=%sqlcmdVersion%" %~dp0..\cmd\modern
+go build -o %~dp0..\sqlcmd.exe -ldflags="-X main.version=%sqlcmdVersion%" %~dp0..\cmd\sqlcmd
 
 REM Generate NOTICE
 if not exist %gopath%\bin\go-licenses.exe (
     go install github.com/google/go-licenses@latest
 )
-go-licenses report github.com/microsoft/go-sqlcmd/cmd/modern --template build\NOTICE.tpl --ignore github.com/microsoft > %~dp0notice.txt 2>nul
+go-licenses report github.com/microsoft/go-sqlcmd/cmd/sqlcmd --template build\NOTICE.tpl --ignore github.com/microsoft > %~dp0notice.txt 2>nul
 copy %~dp0NOTICE.header + %~dp0notice.txt %~dp0..\NOTICE.md
 del %~dp0notice.txt
 
 REM Generates all versions of sqlcmd in platform-specific folder
 setlocal
 
-for /F "tokens=1-3 delims=," %%i in (%~dp0arch.txt) do set GOOS=%%i&set GOARCH=%%j&go build -o %~dp0..\%%i-%%j\%%k -ldflags="-X main.version=%sqlcmdVersion%" %~dp0..\cmd\modern
+for /F "tokens=1-3 delims=," %%i in (%~dp0arch.txt) do set GOOS=%%i&set GOARCH=%%j&go build -o %~dp0..\%%i-%%j\%%k -ldflags="-X main.version=%sqlcmdVersion%" %~dp0..\cmd\sqlcmd
 endlocal
 
 :end

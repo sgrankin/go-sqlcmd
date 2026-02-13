@@ -26,7 +26,7 @@ go mod download
 
 # Build sqlcmd and add to PATH
 echo "🔨 Building sqlcmd..."
-go build -o ~/bin/sqlcmd ./cmd/modern
+go build -o ~/bin/sqlcmd ./cmd/sqlcmd
 echo "✅ sqlcmd built and added to PATH at ~/bin/sqlcmd"
 
 # Verify build works
@@ -71,8 +71,8 @@ cat > ~/.bash_aliases.d/go-sqlcmd << 'EOF'
 alias gtest='go test ./...'
 alias gtest-short='go test -short ./...'
 alias gtest-v='go test -v ./...'
-alias gbuild='go build ./cmd/modern && echo "Built: ./modern"'
-alias ginstall='go build -o ~/bin/sqlcmd ./cmd/modern && echo "Installed to ~/bin/sqlcmd"'
+alias gbuild='go build ./cmd/sqlcmd && echo "Built: ./sqlcmd"'
+alias ginstall='go build -o ~/bin/sqlcmd ./cmd/sqlcmd && echo "Installed to ~/bin/sqlcmd"'
 alias gfmt='go fmt ./...'
 alias gvet='go vet ./...'
 alias glint='golangci-lint run'
@@ -88,7 +88,7 @@ alias sql-legacy='/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SQLCMDPA
 alias test-db='~/bin/sqlcmd -S localhost -U sa -P "$SQLCMDPASSWORD" -C -Q "SELECT @@VERSION"'
 
 # Rebuild and test
-alias rebuild='go build -o ~/bin/sqlcmd ./cmd/modern && echo "Rebuilt sqlcmd"'
+alias rebuild='go build -o ~/bin/sqlcmd ./cmd/sqlcmd && echo "Rebuilt sqlcmd"'
 EOF
 
 # Ensure aliases are sourced from .bashrc

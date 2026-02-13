@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
-	. "github.com/microsoft/go-sqlcmd/cmd/modern/sqlconfig"
+	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 )
 
 // AddContext adds the context to the sqlconfig file, and returns the context

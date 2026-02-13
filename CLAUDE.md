@@ -6,13 +6,13 @@ Fork of [microsoft/go-sqlcmd](https://github.com/microsoft/go-sqlcmd) — a CLI 
 
 ```bash
 # Build
-go build -o sqlcmd ./cmd/modern
+go build -o sqlcmd ./cmd/sqlcmd
 
 # Build with version tag (matches CI)
-go build -o sqlcmd -ldflags="-X main.version=$(git describe --tags --abbrev=0)" ./cmd/modern
+go build -o sqlcmd -ldflags="-X main.version=$(git describe --tags --abbrev=0)" ./cmd/sqlcmd
 
 # Run without building
-go run ./cmd/modern [args...]
+go run ./cmd/sqlcmd [args...]
 ```
 
 ## Test
@@ -39,7 +39,7 @@ go test ./...
 
 **Colima users**: The helper auto-detects Docker socket via `docker context inspect`. No manual `DOCKER_HOST` setup needed.
 
-**Packages that still skip/fail**: `cmd/modern/root` (query tests have upstream config-layer issues), `cmd/modern/root/install`, `internal/container` (need Docker daemon for container lifecycle tests), `internal/net`, `internal/tools/tool` (env-specific).
+**Packages that still skip/fail**: `cmd/sqlcmd/root` (query tests have upstream config-layer issues), `cmd/sqlcmd/root/install`, `internal/container` (need Docker daemon for container lifecycle tests), `internal/net`, `internal/tools/tool` (env-specific).
 
 ## Lint
 
@@ -51,13 +51,13 @@ go tool golangci-lint run
 
 ## Architecture
 
-**Dual CLI mode**: `cmd/modern/main.go` dispatches based on the first argument:
+**Dual CLI mode**: `cmd/sqlcmd/main.go` dispatches based on the first argument:
 - Modern subcommands (`create`, `query`, `config`, `start`, `stop`, etc.) → Cobra-based CLI
-- Legacy ODBC-style flags (`-Q`, `-i`, `-o`, `-S`, etc.) → Kong-based CLI in `cmd/sqlcmd/`
+- Legacy ODBC-style flags (`-Q`, `-i`, `-o`, `-S`, etc.) → Cobra-based CLI in `internal/legacy/`
 
 **Key packages**:
-- `cmd/modern/` — main entry point, Cobra command tree
-- `cmd/sqlcmd/` — legacy CLI (backward compat)
+- `cmd/sqlcmd/` — main entry point, Cobra command tree
+- `internal/legacy/` — legacy CLI (backward compat)
 - `pkg/sqlcmd/` — core library: connection, batch processing, variable substitution, REPL
 - `pkg/console/` — interactive console using `liner`
 - `internal/config/` — `~/.sqlcmd/sqlconfig` context management (Viper)

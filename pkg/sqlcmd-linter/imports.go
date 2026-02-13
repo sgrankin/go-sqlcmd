@@ -26,9 +26,9 @@ var AllowedImports = map[string][]string{
 	`"github.com/peterh/liner`:         {`pkg/console`},
 	`"github.com/microsoft/go-mssqldb`: {},
 	`"github.com/microsoft/go-sqlcmd`:  {},
-	`"github.com/spf13/cobra`:          {`cmd/sqlcmd`, `cmd/modern`},
-	`"github.com/spf13/pflag`:          {`cmd/sqlcmd`, `cmd/modern`},
-	`"github.com/spf13/viper`:          {`cmd/sqlcmd`, `cmd/modern`},
+	`"github.com/spf13/cobra`:          {`internal/legacy`, `cmd/sqlcmd`},
+	`"github.com/spf13/pflag`:          {`internal/legacy`, `cmd/sqlcmd`},
+	`"github.com/spf13/viper`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/stretchr/testify`:     {},
 }
 

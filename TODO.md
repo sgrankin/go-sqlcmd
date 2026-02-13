@@ -12,7 +12,7 @@ Implemented in `pkg/sqlcmd/readonly.go`. Client-side safety net that rejects des
 - **BEGIN TRAN / COMMIT / ROLLBACK**: Rejected (decision: too risky if user forgets to rollback)
 - **Temp tables**: Allowed (`CREATE TABLE #foo`, `SELECT INTO #foo`) — common in analysis, no real data impact
 - **CTEs**: `WITH...SELECT` allowed, `WITH...DELETE/UPDATE/INSERT/MERGE` rejected
-- Wired into both legacy (`cmd/sqlcmd`) and modern (`cmd/modern/root/query.go`) CLI paths
+- Wired into both legacy (`internal/legacy`) and modern (`cmd/sqlcmd/root/query.go`) CLI paths
 - `ApplicationIntent=ReadOnly` for read replicas is orthogonal and not yet implemented
 
 ## 2. ~~Proper query plan output~~ DONE (2a)
@@ -129,36 +129,25 @@ sqlcmd -Q "SELECT * FROM orders" --format csv -o results.csv --plan-file plan.xm
 
 **Proposal**: When output is going to a file (`-o`), default to `-y 0` (unlimited variable-length column display) unless explicitly overridden. Interactive/terminal output can keep current defaults to avoid flooding the screen.
 
-## 6. Connection profiles
+## 6. Auto-detect Azure AD auth for Azure SQL
 
-**Problem**: Connection strings are long and repetitive:
-```bash
-sqlcmd -S fulcrum-east2-dev.database.windows.net \
-  -d rockrunindustries_20260129_sg \
-  --authentication-method=ActiveDirectoryDefault
-```
+**Problem**: Connecting to Azure SQL always requires `--authentication-method=ActiveDirectoryDefault`, which is boilerplate since there's no other sensible default for `*.database.windows.net`.
 
-**Proposal**: sqlcmd already has `sqlcmd config` for container contexts. Extend it (or add a lighter-weight mechanism) for connection profiles:
+**Proposal**: When the server name matches `*.database.windows.net` and no `--authentication-method` is explicitly set, default to `ActiveDirectoryDefault`. All other servers keep current behavior (SQL auth / Windows auth).
 
-```bash
-sqlcmd profile add dev-rri \
-  -S fulcrum-east2-dev.database.windows.net \
-  -d rockrunindustries_20260129_sg \
-  --authentication-method=ActiveDirectoryDefault
+## ~~7. Connection profiles~~ DROPPED
 
-sqlcmd --profile dev-rri -Q "SELECT 1"
-sqlcmd --profile dev-rri --plan -i query.sql -o plan.xml
-```
+Not worth it — connection strings are just server + database name, short enough to type or alias.
 
-## 7. MCP server mode (future)
+## 7. ~~MCP server mode~~ DROPPED
 
-Add a `sqlcmd --mcp` flag that speaks the MCP (Model Context Protocol) stdio protocol, exposing tools like `run_query` and `get_query_plan`. This would let Claude Code (or other MCP clients) call SQL queries as native tools instead of shelling out via Bash. Lower priority since Bash invocation works, but would provide better ergonomics (structured input/output, no shell escaping, direct error handling).
+Not worth the complexity. The CLI with `--format jsonl/csv` and `--plan-file` already works well for programmatic use from Claude Code or scripts. Shell invocation is fine.
 
 ## 8. ~~Test infrastructure: testcontainers-go~~ DONE
 
 Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module with a named, reusable container (`go-sqlcmd-test`) shared across all test packages.
 
-- **`SetupForTestMain()`** — called from `TestMain` in `pkg/sqlcmd`, `cmd/sqlcmd`, `cmd/modern`, `cmd/modern/root`
+- **`SetupForTestMain()`** — called from `TestMain` in `pkg/sqlcmd`, `internal/legacy`, `cmd/sqlcmd`, `cmd/sqlcmd/root`
 - **Container reuse**: `WithReuseByName` ensures all packages share one SQL Server instance during `go test ./...`
 - **Colima support**: Auto-detects Docker socket from `docker context inspect`
 - **Respects existing server**: If `SQLCMDSERVER` is already set, no container is started
@@ -181,7 +170,8 @@ This makes the plan analysis features discoverable to Claude when a user asks fo
 2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
 3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
 4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze` flag)
-5. **Better defaults** — small quality of life
-6. **Connection profiles** — convenience, workaround is shell aliases
-7. **MCP server mode** — future, when the above are solid
-8. **Claude skill for plan analysis** — discoverability
+5. **Better defaults** — small quality of life, next up
+6. **Claude skill for plan analysis** — discoverability, next up
+7. **Azure AD auto-detect** — default to ActiveDirectoryDefault for *.database.windows.net
+8. ~~**Connection profiles**~~ — DROPPED
+9. ~~**MCP server mode**~~ — DROPPED

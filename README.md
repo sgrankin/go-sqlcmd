@@ -271,7 +271,7 @@ To see a list of available styles along with colored syntax samples, use this co
 
 #### sqlcmd executable
 
-Build [sqlcmd](cmd/modern)
+Build [sqlcmd](cmd/sqlcmd)
 
 ```sh
 ./build/build.sh
@@ -361,7 +361,7 @@ If you prefer to set up your environment manually:
 
 5. Build and run:
    ```bash
-   go build -o sqlcmd ./cmd/modern
+   go build -o sqlcmd ./cmd/sqlcmd
    ./sqlcmd --version
    ```
 

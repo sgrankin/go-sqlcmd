@@ -12,7 +12,7 @@ import (
 	"github.com/microsoft/go-sqlcmd/internal/buffer"
 	"github.com/microsoft/go-sqlcmd/pkg/console"
 
-	"github.com/microsoft/go-sqlcmd/cmd/modern/sqlconfig"
+	"github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
 )
 

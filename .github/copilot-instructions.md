@@ -51,7 +51,7 @@ go-sqlcmd is a Go-based command line tool (`sqlcmd`) for working with Microsoft 
 .\build\build.cmd      # Windows
 
 # Or build directly with Go
-go build -o sqlcmd ./cmd/modern
+go build -o sqlcmd ./cmd/sqlcmd
 ```
 
 ### Dependencies
@@ -121,9 +121,9 @@ Each package should have a `doc.go` file with package-level documentation.
 
 ### Modern CLI (Cobra-based)
 
-The modern CLI is located in `cmd/modern/` and uses the [Cobra](https://github.com/spf13/cobra) library. Key points:
-- Root command is in `cmd/modern/root.go`
-- Subcommands are in `cmd/modern/root/` directory
+The modern CLI is located in `cmd/sqlcmd/` and uses the [Cobra](https://github.com/spf13/cobra) library. Key points:
+- Root command is in `cmd/sqlcmd/root.go`
+- Subcommands are in `cmd/sqlcmd/root/` directory
 - Uses dependency injection for testability
 
 ### Legacy CLI (Kong-based)
@@ -133,7 +133,7 @@ The legacy CLI is in `cmd/sqlcmd/` and maintains backward compatibility with the
 ### Command Structure
 
 When adding new commands:
-1. Create the command in `cmd/modern/root/`
+1. Create the command in `cmd/sqlcmd/root/`
 2. Follow the existing pattern for subcommands (see `query.go`, `start.go`, `stop.go`)
 3. Add corresponding tests with `_test.go` suffix
 
@@ -327,7 +327,7 @@ When in doubt: would a senior engineer roll their eyes at this?
 
 For new commands related to context management, container operations, or configuration:
 
-1. Create a new file in `cmd/modern/root/` (e.g., `mycommand.go`)
+1. Create a new file in `cmd/sqlcmd/root/` (e.g., `mycommand.go`)
 2. Define a command struct that embeds `cmdparser.Cmd`
 3. Implement the `DefineCommand` method to set up command options, flags, and examples
 4. Implement the `run` method with the command logic

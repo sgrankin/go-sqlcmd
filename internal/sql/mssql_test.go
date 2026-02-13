@@ -5,7 +5,7 @@ package sql
 
 import (
 	"fmt"
-	. "github.com/microsoft/go-sqlcmd/cmd/modern/sqlconfig"
+	. "github.com/microsoft/go-sqlcmd/cmd/sqlcmd/sqlconfig"
 	"github.com/microsoft/go-sqlcmd/internal/secret"
 	"github.com/microsoft/go-sqlcmd/pkg/sqlcmd"
 	"github.com/stretchr/testify/assert"
