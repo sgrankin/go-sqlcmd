@@ -259,6 +259,14 @@ func Execute(version string) {
 			}
 
 			vars := sqlcmd.InitializeVariables(args.useEnvVars())
+
+			// When output goes to a file, default to unlimited variable-length
+			// display (-y 0) unless the user explicitly set -y.
+			if args.OutputFile != "" && args.VariableTypeWidth == nil {
+				unlimited := 0
+				args.VariableTypeWidth = &unlimited
+			}
+
 			setVars(vars, &args)
 
 			if args.Version {

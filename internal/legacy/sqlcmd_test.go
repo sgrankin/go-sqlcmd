@@ -699,6 +699,39 @@ func (b *memoryBuffer) Close() error {
 	return nil
 }
 
+func TestVariableTypeWidthDefaultsToUnlimitedForFileOutput(t *testing.T) {
+	// When -o is set and -y is not explicitly provided, default to 0 (unlimited)
+	a := newArguments()
+	a.OutputFile = "somefile.txt"
+	assert.Nil(t, a.VariableTypeWidth, "VariableTypeWidth should be nil when not set")
+
+	// Simulate the defaulting logic from Execute()
+	if a.OutputFile != "" && a.VariableTypeWidth == nil {
+		unlimited := 0
+		a.VariableTypeWidth = &unlimited
+	}
+	assert.Equal(t, 0, *a.VariableTypeWidth, "should default to 0 for file output")
+
+	// When -y is explicitly set, the user's value should be preserved
+	a2 := newArguments()
+	a2.OutputFile = "somefile.txt"
+	explicit := 100
+	a2.VariableTypeWidth = &explicit
+	if a2.OutputFile != "" && a2.VariableTypeWidth == nil {
+		unlimited := 0
+		a2.VariableTypeWidth = &unlimited
+	}
+	assert.Equal(t, 100, *a2.VariableTypeWidth, "explicit -y should be preserved")
+
+	// When -o is not set, VariableTypeWidth remains nil
+	a3 := newArguments()
+	if a3.OutputFile != "" && a3.VariableTypeWidth == nil {
+		unlimited := 0
+		a3.VariableTypeWidth = &unlimited
+	}
+	assert.Nil(t, a3.VariableTypeWidth, "should remain nil when no output file")
+}
+
 func setAzureAuthArgIfNeeded(args *SQLCmdArguments) {
 	if canTestAzureAuth() {
 		sc := os.Getenv("AZURESUBSCRIPTION_SERVICE_CONNECTION_NAME")

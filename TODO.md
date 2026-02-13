@@ -123,11 +123,9 @@ sqlcmd -Q "SELECT * FROM orders" --format csv -o results.csv --plan-file plan.xm
 - JSONL NULL values are JSON `null` (unambiguous)
 - Multiple result sets in one query produce consecutive output (CSV: each with its own header row; JSONL: consecutive objects)
 
-## 5. Better defaults for large output
+## 5. ~~Better defaults for large output~~ DONE
 
-**Problem**: Default column display width truncates large values silently. We had to use `-W -w 65535 -y 0` to get full output. The `-y 0` (unlimited variable-length display) is particularly non-obvious.
-
-**Proposal**: When output is going to a file (`-o`), default to `-y 0` (unlimited variable-length column display) unless explicitly overridden. Interactive/terminal output can keep current defaults to avoid flooding the screen.
+When output goes to a file (`-o`) and `-y` is not explicitly set, defaults to `-y 0` (unlimited variable-length column display). Interactive/terminal output keeps the current default of 256 to avoid flooding the screen. Implemented in `internal/legacy/sqlcmd.go` Execute() function.
 
 ## 6. Auto-detect Azure AD auth for Azure SQL
 
@@ -153,16 +151,9 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 - **Respects existing server**: If `SQLCMDSERVER` is already set, no container is started
 - **Graceful degradation**: If Docker is unavailable, prints message and tests that need SQL fail individually
 
-## 9. Claude skill for query plan analysis
+## 9. ~~Claude skill for query plan analysis~~ DONE
 
-Write a Claude Code skill (in `.claude/skills/`) that teaches Claude how to use sqlcmd's plan analysis features in a query profiling workflow. The skill should cover:
-- Capturing plans: `sqlcmd query --plan-file plan.xml "SELECT ..."`
-- Analyzing plans: `sqlcmd plan analyze plan.xml`
-- Inline analysis: `sqlcmd query --analyze "SELECT ..."`
-- Interpreting the output: what cardinality errors mean, when to worry about warnings, reading the operator tree
-- Common follow-up actions: adding indexes, updating statistics, rewriting queries
-
-This makes the plan analysis features discoverable to Claude when a user asks for help profiling SQL queries.
+Implemented in `.claude/skills/query-plan-analysis.md`. Covers plan capture (`--plan-file`), analysis (`sqlcmd plan analyze`, `--analyze`), reading analysis output (cardinality errors, warnings, operator tree), and common optimization actions.
 
 ## Priority
 
@@ -170,8 +161,8 @@ This makes the plan analysis features discoverable to Claude when a user asks fo
 2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
 3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
 4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze` flag)
-5. **Better defaults** — small quality of life, next up
-6. **Claude skill for plan analysis** — discoverability, next up
-7. **Azure AD auto-detect** — default to ActiveDirectoryDefault for *.database.windows.net
+5. ~~**Better defaults**~~ — DONE
+6. ~~**Claude skill for plan analysis**~~ — DONE
+7. **Azure AD auto-detect** — default to ActiveDirectoryDefault for *.database.windows.net, next up
 8. ~~**Connection profiles**~~ — DROPPED
 9. ~~**MCP server mode**~~ — DROPPED
