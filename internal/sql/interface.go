@@ -7,6 +7,7 @@ import (
 	"io"
 
 	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 )
 
 type Sql interface {
@@ -14,6 +15,7 @@ type Sql interface {
 	Query(text string)
 	QueryToWriter(text string, w io.Writer)
 	ScalarString(query string) string
+	ResultSets() []sqlcmd.ResultSetInfo
 }
 
 type ConnectOptions struct {

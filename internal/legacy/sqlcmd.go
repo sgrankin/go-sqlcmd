@@ -91,7 +91,8 @@ type SQLCmdArguments struct {
 	AllowExec                   bool
 	PlanFile                    string
 	Format                      string
-	Analyze                     bool
+	AnalyzeFile                 string
+	Summary                     bool
 	// Keep Help at the end of the list
 	Help  bool
 	Ascii bool
@@ -260,9 +261,9 @@ func Execute(version string) {
 
 			vars := sqlcmd.InitializeVariables(args.useEnvVars())
 
-			// When output goes to a file, default to unlimited variable-length
-			// display (-y 0) unless the user explicitly set -y.
-			if args.OutputFile != "" && args.VariableTypeWidth == nil {
+			// When output goes to a file or summary mode, default to unlimited
+			// variable-length display (-y 0) unless the user explicitly set -y.
+			if (args.OutputFile != "" || args.Summary) && args.VariableTypeWidth == nil {
 				unlimited := 0
 				args.VariableTypeWidth = &unlimited
 			}
@@ -535,7 +536,8 @@ func setFlags(rootCmd *cobra.Command, args *SQLCmdArguments) {
 	rootCmd.Flags().BoolVar(&args.AllowExec, "allow-exec", false, localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode"))
 	rootCmd.Flags().StringVar(&args.PlanFile, "plan-file", "", localizer.Sprintf("Write execution plan XML to the specified file"))
 	rootCmd.Flags().StringVar(&args.Format, "format", "", localizer.Sprintf("Output format: csv, jsonl"))
-	rootCmd.Flags().BoolVar(&args.Analyze, "analyze", false, localizer.Sprintf("Analyze the execution plan after running the query"))
+	rootCmd.Flags().StringVar(&args.AnalyzeFile, "analyze-file", "", localizer.Sprintf("Analyze the execution plan and write text analysis to the specified file"))
+	rootCmd.Flags().BoolVar(&args.Summary, "summary", false, localizer.Sprintf("Print concise summary to stdout (row/column counts, analysis highlights, file paths)"))
 }
 
 func setScriptVariable(v string) string {
@@ -877,7 +879,7 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 	s.AllowExec = args.AllowExec
 	var planBuf bytes.Buffer
 	switch {
-	case args.PlanFile != "" && args.Analyze:
+	case args.PlanFile != "" && args.AnalyzeFile != "":
 		pf, pfErr := os.Create(args.PlanFile)
 		if pfErr != nil {
 			return 1, localizer.Errorf("failed to create plan file '%s': %v", args.PlanFile, pfErr)
@@ -891,7 +893,7 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 		}
 		defer pf.Close()
 		s.PlanFile = pf
-	case args.Analyze:
+	case args.AnalyzeFile != "":
 		s.PlanFile = &planBuf
 	}
 	// We want the default behavior on ctrl-c - exit the process
@@ -991,28 +993,72 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 			processAll := !isInteractive
 			err = s.Run(once, processAll)
 		} else {
+			var resultSets []sqlcmd.ResultSetInfo
 			for f := range args.InputFile {
 				if err = s.IncludeFile(args.InputFile[f], true); err != nil {
 					s.WriteError(s.GetError(), err)
 					s.Exitcode = 1
 					break
 				}
+				resultSets = append(resultSets, s.ResultSets...)
 			}
+			s.ResultSets = resultSets
 		}
 	}
-	if args.Analyze && planBuf.Len() > 0 {
+	var analysisResult *plan.Result
+	if args.AnalyzeFile != "" && planBuf.Len() > 0 {
 		plans, parseErr := plan.Parse(planBuf.Bytes())
 		if parseErr != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing plan: %v\n", parseErr)
 		} else {
-			result := plan.Analyze(plans)
-			fmt.Fprintln(os.Stdout)
-			plan.FormatText(os.Stdout, result)
+			analysisResult = plan.Analyze(plans)
+			af, afErr := os.Create(args.AnalyzeFile)
+			if afErr != nil {
+				fmt.Fprintf(os.Stderr, "Error creating analysis file: %v\n", afErr)
+			} else {
+				_ = plan.FormatJSON(af, analysisResult)
+				af.Close()
+			}
 		}
+	}
+	if args.Summary {
+		printSummary(os.Stdout, s, args, analysisResult)
 	}
 	s.SetOutput(nil)
 	s.SetError(nil)
 	return s.Exitcode, err
+}
+
+func printSummary(w io.Writer, s *sqlcmd.Sqlcmd, args *SQLCmdArguments, analysisResult *plan.Result) {
+	// Data result set summary
+	for _, rs := range s.ResultSets {
+		colPreview := ""
+		if len(rs.Columns) > 0 {
+			cols := rs.Columns
+			if len(cols) > 5 {
+				colPreview = fmt.Sprintf(" [%s, ...]", strings.Join(cols[:5], ", "))
+			} else {
+				colPreview = fmt.Sprintf(" [%s]", strings.Join(cols, ", "))
+			}
+		}
+		fmt.Fprintf(w, "%d rows, %d columns%s\n", rs.RowCount, len(rs.Columns), colPreview)
+	}
+
+	// File paths
+	if args.OutputFile != "" {
+		fmt.Fprintf(w, "Results: %s\n", args.OutputFile)
+	}
+	if args.PlanFile != "" {
+		fmt.Fprintf(w, "Plan: %s\n", args.PlanFile)
+	}
+	if args.AnalyzeFile != "" {
+		fmt.Fprintf(w, "Analysis: %s\n", args.AnalyzeFile)
+	}
+
+	// Analysis summary
+	if analysisResult != nil {
+		plan.FormatSummary(w, analysisResult)
+	}
 }
 
 func listLocalServers() {

@@ -7,6 +7,7 @@ import (
 	"io"
 
 	. "github.com/sgrankin/go-sqlcmd/cmd/sqlcmd/sqlconfig"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 )
 
 // Connect is a mock implementation used to speed up unit testing of other units
@@ -26,4 +27,8 @@ func (m *mock) QueryToWriter(text string, w io.Writer) {
 
 func (m *mock) ScalarString(query string) string {
 	return ""
+}
+
+func (m *mock) ResultSets() []sqlcmd.ResultSetInfo {
+	return nil
 }

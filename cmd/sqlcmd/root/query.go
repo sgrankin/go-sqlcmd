@@ -6,7 +6,9 @@ package root
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/sgrankin/go-sqlcmd/internal/cmdparser"
 	"github.com/sgrankin/go-sqlcmd/internal/config"
@@ -14,19 +16,21 @@ import (
 	"github.com/sgrankin/go-sqlcmd/internal/pal"
 	"github.com/sgrankin/go-sqlcmd/internal/plan"
 	"github.com/sgrankin/go-sqlcmd/internal/sql"
+	"github.com/sgrankin/go-sqlcmd/pkg/sqlcmd"
 )
 
 // Query defines the `sqlcmd query` command
 type Query struct {
 	cmdparser.Cmd
 
-	text      string
-	database  string
-	rw        bool
-	allowExec bool
-	planFile  string
-	format    string
-	analyze   bool
+	text        string
+	database    string
+	rw          bool
+	allowExec   bool
+	planFile    string
+	format      string
+	analyzeFile string
+	summary     bool
 }
 
 func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
@@ -47,7 +51,7 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 					pal.UserName()),
 			}},
 			{Description: localizer.Sprintf("Run a query and analyze its execution plan"), Steps: []string{
-				`sqlcmd query --analyze "SELECT * FROM orders"`,
+				`sqlcmd query --analyze-file analysis.json "SELECT * FROM orders"`,
 			}},
 		},
 		Run: c.run,
@@ -99,16 +103,21 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 		Usage:  localizer.Sprintf("Output format: default, csv, jsonl")})
 
 	c.AddFlag(cmdparser.FlagOptions{
-		Bool:  &c.analyze,
-		Name:  "analyze",
-		Usage: localizer.Sprintf("Analyze the execution plan after running the query")})
+		String: &c.analyzeFile,
+		Name:   "analyze-file",
+		Usage:  localizer.Sprintf("Analyze the execution plan and write JSON analysis to the specified file")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.summary,
+		Name:  "summary",
+		Usage: localizer.Sprintf("Print concise summary to stdout (row/column counts, analysis highlights, file paths)")})
 }
 
 func (c *Query) run() {
 	endpoint, user := config.CurrentContext()
 
 	var planBuf *bytes.Buffer
-	if c.analyze {
+	if c.analyzeFile != "" {
 		planBuf = &bytes.Buffer{}
 	}
 
@@ -127,11 +136,44 @@ func (c *Query) run() {
 
 	s.Query(c.text)
 
-	if c.analyze && planBuf.Len() > 0 {
+	var analysisResult *plan.Result
+	if c.analyzeFile != "" && planBuf.Len() > 0 {
 		plans, err := plan.Parse(planBuf.Bytes())
 		c.CheckErr(err)
-		result := plan.Analyze(plans)
-		fmt.Fprintln(os.Stdout)
-		plan.FormatText(os.Stdout, result)
+		analysisResult = plan.Analyze(plans)
+		af, afErr := os.Create(c.analyzeFile)
+		c.CheckErr(afErr)
+		c.CheckErr(plan.FormatJSON(af, analysisResult))
+		af.Close()
+	}
+
+	if c.summary {
+		c.printSummary(os.Stdout, s.ResultSets(), analysisResult)
+	}
+}
+
+func (c *Query) printSummary(w io.Writer, resultSets []sqlcmd.ResultSetInfo, analysisResult *plan.Result) {
+	for _, rs := range resultSets {
+		colPreview := ""
+		if len(rs.Columns) > 0 {
+			cols := rs.Columns
+			if len(cols) > 5 {
+				colPreview = fmt.Sprintf(" [%s, ...]", strings.Join(cols[:5], ", "))
+			} else {
+				colPreview = fmt.Sprintf(" [%s]", strings.Join(cols, ", "))
+			}
+		}
+		fmt.Fprintf(w, "%d rows, %d columns%s\n", rs.RowCount, len(rs.Columns), colPreview)
+	}
+
+	if c.planFile != "" {
+		fmt.Fprintf(w, "Plan: %s\n", c.planFile)
+	}
+	if c.analyzeFile != "" {
+		fmt.Fprintf(w, "Analysis: %s\n", c.analyzeFile)
+	}
+
+	if analysisResult != nil {
+		plan.FormatSummary(w, analysisResult)
 	}
 }

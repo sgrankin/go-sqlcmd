@@ -128,6 +128,13 @@ type nopWriteCloser struct{ io.Writer }
 
 func (nopWriteCloser) Close() error { return nil }
 
+func (m *mssql) ResultSets() []sqlcmd.ResultSetInfo {
+	if m.sqlcmd == nil {
+		return nil
+	}
+	return m.sqlcmd.ResultSets
+}
+
 func (m *mssql) ScalarString(query string) string {
 	buf := buffer.NewMemoryBuffer()
 	defer func() { _ = buf.Close() }()

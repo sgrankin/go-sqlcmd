@@ -287,6 +287,24 @@ func TestGetRunnableQuery(t *testing.T) {
 	}
 }
 
+func TestRunAccumulatesResultSetsAcrossBatches(t *testing.T) {
+	s := New(nil, "", InitializeVariables(false))
+	s.Cmd["GO"].action = func(s *Sqlcmd, _ []string, _ uint) error {
+		s.ResultSets = append(s.ResultSets, ResultSetInfo{RowCount: 1})
+		s.batch.Reset(nil)
+		return nil
+	}
+	s.ResultSets = []ResultSetInfo{{RowCount: 99}}
+
+	err := runSqlCmd(t, s, []string{"SELECT 1", "GO", "SELECT 2", "GO"})
+	assert.NoError(t, err)
+	assert.Len(t, s.ResultSets, 2)
+
+	err = runSqlCmd(t, s, []string{"SELECT 3", "GO"})
+	assert.NoError(t, err)
+	assert.Len(t, s.ResultSets, 1, "a new Run must discard prior result metadata")
+}
+
 func TestExitInitialQuery(t *testing.T) {
 	s, buf := setupSqlCmdWithMemoryOutput(t)
 	defer buf.Close()

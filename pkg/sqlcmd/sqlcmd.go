@@ -56,6 +56,12 @@ type Console interface {
 	Close()
 }
 
+// ResultSetInfo tracks metadata about a data result set returned by a query.
+type ResultSetInfo struct {
+	Columns  []string
+	RowCount int64
+}
+
 // Sqlcmd is the core processor for text lines.
 //
 // It accumulates non-command lines in a buffer and sends command lines to the appropriate command runner.
@@ -95,8 +101,11 @@ type Sqlcmd struct {
 	// result sets are written to PlanFile instead of normal output.
 	// Data result sets are still sent to the regular output.
 	PlanFile io.Writer
-	colorizer color.Colorizer
-	termchan  chan os.Signal
+	// ResultSets is populated after each Run call with metadata about all
+	// data result sets (column names and row counts).
+	ResultSets []ResultSetInfo
+	colorizer  color.Colorizer
+	termchan   chan os.Signal
 }
 
 // New creates a new Sqlcmd instance.
@@ -132,6 +141,7 @@ func (s *Sqlcmd) scanNext() (string, error) {
 func (s *Sqlcmd) Run(once bool, processAll bool) error {
 	iactive := s.lineIo != nil
 	var lastError error
+	s.ResultSets = nil
 	for {
 		if iactive {
 			s.lineIo.SetPrompt(s.Prompt())
@@ -549,8 +559,14 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 				if err == nil {
 					s.Format.BeginResultSet(cols)
 				}
+				// Track result set metadata
+				rsInfo := ResultSetInfo{}
+				for _, c := range cols {
+					rsInfo.Columns = append(rsInfo.Columns, c.Name())
+				}
 				inresult := rows.Next()
 				for inresult {
+					rsInfo.RowCount++
 					col1 := s.Format.AddRow(rows)
 					inresult = rows.Next()
 					if !inresult {
@@ -569,6 +585,7 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 					}
 				}
 				s.Format.EndResultSet()
+				s.ResultSets = append(s.ResultSets, rsInfo)
 			}
 		}
 	}

@@ -17,12 +17,14 @@ import (
 type Analyze struct {
 	cmdparser.Cmd
 
-	file      string
-	query     string
-	database  string
-	rw        bool
-	allowExec bool
-	format    string
+	file       string
+	query      string
+	database   string
+	rw         bool
+	allowExec  bool
+	format     string
+	outputFile string
+	summary    bool
 }
 
 func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
@@ -89,6 +91,19 @@ func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
 		Name:   "format",
 		Usage:  localizer.Sprintf("Output format: text (default), json"),
 	})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		String:    &c.outputFile,
+		Name:      "output-file",
+		Shorthand: "o",
+		Usage:     localizer.Sprintf("Write full JSON analysis to the specified file"),
+	})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.summary,
+		Name:  "summary",
+		Usage: localizer.Sprintf("Print concise summary instead of full output"),
+	})
 }
 
 func (c *Analyze) run() {
@@ -140,8 +155,19 @@ func (c *Analyze) sqlOptions(planBuffer io.Writer) sql.SqlOptions {
 }
 
 func (c *Analyze) writeOutput(result *plan.Result) {
-	switch c.format {
-	case "json":
+	if c.outputFile != "" {
+		f, err := os.Create(c.outputFile)
+		c.CheckErr(err)
+		c.CheckErr(plan.FormatJSON(f, result))
+		f.Close()
+	}
+
+	switch {
+	case c.summary:
+		plan.FormatSummary(os.Stdout, result)
+	case c.outputFile != "":
+		// File already written, nothing more to stdout
+	case c.format == "json":
 		c.CheckErr(plan.FormatJSON(os.Stdout, result))
 	default:
 		plan.FormatText(os.Stdout, result)
