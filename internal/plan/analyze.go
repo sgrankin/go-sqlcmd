@@ -121,31 +121,39 @@ func computeCardinalityErrors(op *Operator) []CardinalityError {
 
 func collectCardErrors(op *Operator, errs *[]CardinalityError) {
 	if op.EstRows > 0 && op.ActualRows > 0 {
-		// EstimateRows is per-execution; ActualRows is total across all executions.
-		// Scale estimate by ActualExecs to compare apples-to-apples.
-		execs := op.ActualExecs
-		if execs < 1 {
-			execs = 1
+		// Skip unary operators that just pass through a child's row count unchanged
+		// (e.g. Compute Scalar, Sort, Parallelism). Their cardinality error is
+		// inherited, not independent. Only applies to single-child operators —
+		// joins and concatenation independently determine output cardinality.
+		inherited := len(op.Children) == 1 && op.Children[0].ActualRows == op.ActualRows
+
+		if !inherited {
+			// EstimateRows is per-execution; ActualRows is total across all executions.
+			// Scale estimate by ActualExecs to compare apples-to-apples.
+			execs := op.ActualExecs
+			if execs < 1 {
+				execs = 1
+			}
+			totalEstRows := op.EstRows * float64(execs)
+			ratio := math.Max(
+				float64(op.ActualRows)/totalEstRows,
+				totalEstRows/float64(op.ActualRows),
+			)
+			direction := "under"
+			if totalEstRows > float64(op.ActualRows) {
+				direction = "over"
+			}
+			*errs = append(*errs, CardinalityError{
+				NodeID:     op.NodeID,
+				EstRows:    op.EstRows,
+				ActualRows: op.ActualRows,
+				Ratio:      ratio,
+				PhysicalOp: op.PhysicalOp,
+				LogicalOp:  op.LogicalOp,
+				Direction:  direction,
+				ObjectInfo: op.ObjectInfo,
+			})
 		}
-		totalEstRows := op.EstRows * float64(execs)
-		ratio := math.Max(
-			float64(op.ActualRows)/totalEstRows,
-			totalEstRows/float64(op.ActualRows),
-		)
-		direction := "under"
-		if totalEstRows > float64(op.ActualRows) {
-			direction = "over"
-		}
-		*errs = append(*errs, CardinalityError{
-			NodeID:     op.NodeID,
-			EstRows:    op.EstRows,
-			ActualRows: op.ActualRows,
-			Ratio:      ratio,
-			PhysicalOp: op.PhysicalOp,
-			LogicalOp:  op.LogicalOp,
-			Direction:  direction,
-			ObjectInfo: op.ObjectInfo,
-		})
 	}
 	for _, child := range op.Children {
 		collectCardErrors(child, errs)

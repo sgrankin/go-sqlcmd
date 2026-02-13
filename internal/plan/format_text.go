@@ -106,8 +106,10 @@ func writeSummaryHeader(w io.Writer, stmt *StatementResult) {
 	}
 }
 
-// computeHotSet returns the NodeIDs of the top-N operators by elapsed time.
-// The root node is excluded since its elapsed time is always ~= total and isn't actionable.
+// computeHotSet returns the NodeIDs of the top-N operators by exclusive elapsed time.
+// Exclusive elapsed = node's elapsed minus its slowest child's elapsed, which isolates
+// the work done by the operator itself rather than its subtree.
+// The root node is excluded since its elapsed is always ~= total and isn't actionable.
 func computeHotSet(root *Operator, n int) map[int]bool {
 	type nodeElapsed struct {
 		id      int
@@ -116,8 +118,11 @@ func computeHotSet(root *Operator, n int) map[int]bool {
 	var nodes []nodeElapsed
 	var walk func(op *Operator, isRoot bool)
 	walk = func(op *Operator, isRoot bool) {
-		if !isRoot && op.ElapsedMs > 0 {
-			nodes = append(nodes, nodeElapsed{op.NodeID, op.ElapsedMs})
+		if !isRoot {
+			exclusive := exclusiveElapsed(op)
+			if exclusive > 0 {
+				nodes = append(nodes, nodeElapsed{op.NodeID, exclusive})
+			}
 		}
 		for _, c := range op.Children {
 			walk(c, false)
@@ -134,6 +139,21 @@ func computeHotSet(root *Operator, n int) map[int]bool {
 		hot[nodes[i].id] = true
 	}
 	return hot
+}
+
+// exclusiveElapsed returns the elapsed time attributable to this operator alone,
+// excluding time spent in child operators.
+func exclusiveElapsed(op *Operator) int64 {
+	var maxChild int64
+	for _, c := range op.Children {
+		if c.ElapsedMs > maxChild {
+			maxChild = c.ElapsedMs
+		}
+	}
+	if op.ElapsedMs > maxChild {
+		return op.ElapsedMs - maxChild
+	}
+	return 0
 }
 
 func writeOperatorTree(w io.Writer, op *Operator, depth int, hasActual bool, hotSet map[int]bool) {
