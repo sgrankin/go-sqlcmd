@@ -41,7 +41,7 @@ func TestParseSimpleEstimated(t *testing.T) {
 	assert.Equal(t, 0, root.NodeID)
 	assert.Equal(t, "Clustered Index Scan", root.PhysicalOp)
 	assert.Equal(t, 5.0, root.EstRows)
-	assert.Equal(t, "[databases].[PK_databases]", root.ObjectInfo) // preserves brackets from XML attrs
+	assert.Equal(t, "databases.PK_databases", root.ObjectInfo)
 	assert.Empty(t, root.Children)
 	assert.Empty(t, root.Threads) // estimated only, no runtime info
 }
@@ -63,7 +63,7 @@ func TestParseActualPlan(t *testing.T) {
 
 	require.Len(t, root.Children, 2)
 	assert.Equal(t, "Index Seek", root.Children[0].PhysicalOp)
-	assert.Equal(t, "[orders].[IX_customer_id]", root.Children[0].ObjectInfo)
+	assert.Equal(t, "orders.IX_customer_id", root.Children[0].ObjectInfo)
 	assert.Equal(t, "Clustered Index Seek", root.Children[1].PhysicalOp)
 }
 
@@ -175,7 +175,7 @@ func TestAnalyzeWarnings(t *testing.T) {
 		if w.Tag == "ColumnsWithNoStatistics" {
 			found = true
 			assert.Equal(t, 1, w.NodeID)
-			assert.Contains(t, w.Detail, "[t1].val")
+			assert.Contains(t, w.Detail, "t1.val")
 		}
 	}
 	assert.True(t, found, "expected ColumnsWithNoStatistics warning")
@@ -210,12 +210,24 @@ func TestFormatText(t *testing.T) {
 	FormatText(&buf, result)
 	output := buf.String()
 
-	assert.Contains(t, output, "=== StmtSimple ===")
-	assert.Contains(t, output, "=== QueryPlan ===")
-	assert.Contains(t, output, "=== Full operator tree ===")
+	// Summary header
+	assert.Contains(t, output, "Elapsed: 5ms")
+	assert.Contains(t, output, "CPU: 3ms")
+	assert.Contains(t, output, "DOP: 1")
+	assert.Contains(t, output, "Cost: 0.05")
+	assert.Contains(t, output, "Compile: 5ms")
+
+	// Operator tree
+	assert.Contains(t, output, "Operator Tree:")
 	assert.Contains(t, output, "Nested Loops")
 	assert.Contains(t, output, "Index Seek")
-	assert.Contains(t, output, "=== Cardinality estimation errors ===")
+	assert.Contains(t, output, "orders.IX_customer_id")
+
+	// Should have hot markers (★) on top elapsed nodes
+	assert.Contains(t, output, "★")
+
+	// No >10x cardinality errors in actual_plan.xml (all ratios are small)
+	assert.NotContains(t, output, "Cardinality Errors")
 }
 
 func TestFormatTextEstimated(t *testing.T) {
@@ -229,7 +241,104 @@ func TestFormatTextEstimated(t *testing.T) {
 	output := buf.String()
 
 	assert.Contains(t, output, "Estimated plan only")
-	assert.NotContains(t, output, "Cardinality estimation errors")
+	assert.Contains(t, output, "est=5")
+	assert.Contains(t, output, "Clustered Index Scan")
+	assert.NotContains(t, output, "Cardinality Errors")
+}
+
+func TestFormatTextWarnings(t *testing.T) {
+	data := readTestdata(t, "warnings.xml")
+	plans, err := Parse(data)
+	require.NoError(t, err)
+	result := Analyze(plans)
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	// >10x cardinality error (50000 est vs 1200 act = ~41.7x)
+	assert.Contains(t, output, "Cardinality Errors (>10x):")
+	assert.Contains(t, output, "over")
+
+	// Warnings section
+	assert.Contains(t, output, "Warnings:")
+	assert.Contains(t, output, "ColumnsWithNoStatistics")
+	assert.Contains(t, output, "t1.val")
+
+	// Missing statistics
+	assert.Contains(t, output, "Missing Statistics:")
+	assert.Contains(t, output, "t1.val")
+}
+
+func TestFormatTextHotNodes(t *testing.T) {
+	// Build a result with varying elapsed times
+	result := &Result{
+		Statements: []StatementResult{{
+			HasActualInfo: true,
+			Root: &Operator{
+				NodeID: 0, PhysicalOp: "Root", ElapsedMs: 100, ActualRows: 1,
+				Children: []*Operator{
+					{NodeID: 1, PhysicalOp: "Child1", ElapsedMs: 50, ActualRows: 10},
+					{NodeID: 2, PhysicalOp: "Child2", ElapsedMs: 5, ActualRows: 10},
+					{NodeID: 3, PhysicalOp: "Child3", ElapsedMs: 80, ActualRows: 10},
+				},
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	// All 4 nodes have elapsed > 0, top 5 would mark all of them
+	assert.Contains(t, output, "★")
+	// Verify tree structure
+	assert.Contains(t, output, "Root")
+	assert.Contains(t, output, "Child1")
+	assert.Contains(t, output, "Child3")
+}
+
+func TestFormatTextCardErrorFiltering(t *testing.T) {
+	// Build a result with card errors at various ratios
+	result := &Result{
+		Statements: []StatementResult{{
+			HasActualInfo: true,
+			Root:          &Operator{NodeID: 0, PhysicalOp: "Root"},
+			CardErrors: []CardinalityError{
+				{NodeID: 1, EstRows: 100, ActualRows: 1, Ratio: 100, Direction: "over", PhysicalOp: "Scan", ObjectInfo: "t1.IX_a"},
+				{NodeID: 2, EstRows: 10, ActualRows: 5, Ratio: 2, Direction: "over", PhysicalOp: "Seek"},
+				{NodeID: 3, EstRows: 1, ActualRows: 50, Ratio: 50, Direction: "under", PhysicalOp: "Seek", ObjectInfo: "t2.PK"},
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	// >10x errors should appear
+	assert.Contains(t, output, "Node   1")
+	assert.Contains(t, output, "t1.IX_a")
+	assert.Contains(t, output, "Node   3")
+	assert.Contains(t, output, "t2.PK")
+
+	// 2x error should NOT appear
+	assert.NotContains(t, output, "Node   2")
+}
+
+func TestCardinalityErrorObjectInfo(t *testing.T) {
+	data := readTestdata(t, "warnings.xml")
+	plans, err := Parse(data)
+	require.NoError(t, err)
+	result := Analyze(plans)
+
+	stmt := result.Statements[0]
+	// Node 2 (Index Scan on t2.IX_id) should have ObjectInfo
+	for _, e := range stmt.CardErrors {
+		if e.NodeID == 2 {
+			assert.Equal(t, "t2.IX_id", e.ObjectInfo)
+		}
+	}
 }
 
 func TestFormatJSON(t *testing.T) {

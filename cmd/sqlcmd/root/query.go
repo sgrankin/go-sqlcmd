@@ -51,7 +51,7 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 					pal.UserName()),
 			}},
 			{Description: localizer.Sprintf("Run a query and analyze its execution plan"), Steps: []string{
-				`sqlcmd query --analyze-file analysis.json "SELECT * FROM orders"`,
+				`sqlcmd query --analyze-file analysis.txt "SELECT * FROM orders"`,
 			}},
 		},
 		Run: c.run,
@@ -105,7 +105,7 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 	c.AddFlag(cmdparser.FlagOptions{
 		String: &c.analyzeFile,
 		Name:   "analyze-file",
-		Usage:  localizer.Sprintf("Analyze the execution plan and write JSON analysis to the specified file")})
+		Usage:  localizer.Sprintf("Analyze the execution plan and write text analysis to the specified file")})
 
 	c.AddFlag(cmdparser.FlagOptions{
 		Bool:  &c.summary,
@@ -143,7 +143,7 @@ func (c *Query) run() {
 		analysisResult = plan.Analyze(plans)
 		af, afErr := os.Create(c.analyzeFile)
 		c.CheckErr(afErr)
-		c.CheckErr(plan.FormatJSON(af, analysisResult))
+		plan.FormatText(af, analysisResult)
 		af.Close()
 	}
 

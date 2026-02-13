@@ -51,6 +51,7 @@ type CardinalityError struct {
 	PhysicalOp string
 	LogicalOp  string
 	Direction  string // "over" or "under"
+	ObjectInfo string // e.g. "orders.IX_customer_id"
 }
 
 // OpWarning reports a warning associated with a specific operator node.

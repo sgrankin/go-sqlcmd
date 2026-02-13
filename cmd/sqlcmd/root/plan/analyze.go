@@ -96,7 +96,7 @@ func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
 		String:    &c.outputFile,
 		Name:      "output-file",
 		Shorthand: "o",
-		Usage:     localizer.Sprintf("Write full JSON analysis to the specified file"),
+		Usage:     localizer.Sprintf("Write analysis to the specified file (text by default, JSON with --format json)"),
 	})
 
 	c.AddFlag(cmdparser.FlagOptions{
@@ -158,7 +158,11 @@ func (c *Analyze) writeOutput(result *plan.Result) {
 	if c.outputFile != "" {
 		f, err := os.Create(c.outputFile)
 		c.CheckErr(err)
-		c.CheckErr(plan.FormatJSON(f, result))
+		if c.format == "json" {
+			c.CheckErr(plan.FormatJSON(f, result))
+		} else {
+			plan.FormatText(f, result)
+		}
 		f.Close()
 	}
 

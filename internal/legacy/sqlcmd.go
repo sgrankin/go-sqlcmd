@@ -1016,7 +1016,7 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 			if afErr != nil {
 				fmt.Fprintf(os.Stderr, "Error creating analysis file: %v\n", afErr)
 			} else {
-				_ = plan.FormatJSON(af, analysisResult)
+				plan.FormatText(af, analysisResult)
 				af.Close()
 			}
 		}

@@ -136,6 +136,7 @@ func collectCardErrors(op *Operator, errs *[]CardinalityError) {
 			PhysicalOp: op.PhysicalOp,
 			LogicalOp:  op.LogicalOp,
 			Direction:  direction,
+			ObjectInfo: op.ObjectInfo,
 		})
 	}
 	for _, child := range op.Children {
@@ -159,7 +160,7 @@ func walkOpWarnings(op *Operator, out *[]OpWarning) {
 		if w.Tag == "ColumnsWithNoStatistics" {
 			var cols []string
 			for _, sub := range w.SubWarning {
-				cols = append(cols, fmt.Sprintf("%s.%s", sub.Attrs["Table"], sub.Attrs["Column"]))
+				cols = append(cols, fmt.Sprintf("%s.%s", stripBrackets(sub.Attrs["Table"]), stripBrackets(sub.Attrs["Column"])))
 			}
 			ow.Detail = strings.Join(cols, ", ")
 		} else {

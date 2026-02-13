@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const showPlanNS = "http://schemas.microsoft.com/sqlserver/2004/07/showplan"
-
 // ShowPlanXML is the root element of a SQL Server execution plan XML document.
 type ShowPlanXML struct {
 	XMLName    xml.Name    `xml:"ShowPlanXML"`
@@ -340,8 +338,8 @@ func parseWarnings(decoder *xml.Decoder) ([]xmlWarning, error) {
 }
 
 func formatObjectInfo(attrs map[string]string) string {
-	table := attrs["Table"]
-	index := attrs["Index"]
+	table := stripBrackets(attrs["Table"])
+	index := stripBrackets(attrs["Index"])
 	if table == "" {
 		return ""
 	}
@@ -349,6 +347,13 @@ func formatObjectInfo(attrs map[string]string) string {
 		return fmt.Sprintf("%s.%s", table, index)
 	}
 	return table
+}
+
+func stripBrackets(s string) string {
+	if len(s) >= 2 && s[0] == '[' && s[len(s)-1] == ']' {
+		return s[1 : len(s)-1]
+	}
+	return s
 }
 
 func attrsToMap(attrs []xml.Attr) map[string]string {
