@@ -164,6 +164,17 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 - **Respects existing server**: If `SQLCMDSERVER` is already set, no container is started
 - **Graceful degradation**: If Docker is unavailable, prints message and tests that need SQL fail individually
 
+## 9. Claude skill for query plan analysis
+
+Write a Claude Code skill (in `.claude/skills/`) that teaches Claude how to use sqlcmd's plan analysis features in a query profiling workflow. The skill should cover:
+- Capturing plans: `sqlcmd query --plan-file plan.xml "SELECT ..."`
+- Analyzing plans: `sqlcmd plan analyze plan.xml`
+- Inline analysis: `sqlcmd query --analyze "SELECT ..."`
+- Interpreting the output: what cardinality errors mean, when to worry about warnings, reading the operator tree
+- Common follow-up actions: adding indexes, updating statistics, rewriting queries
+
+This makes the plan analysis features discoverable to Claude when a user asks for help profiling SQL queries.
+
 ## Priority
 
 1. ~~**Read-only mode**~~ — DONE
@@ -173,3 +184,4 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 5. **Better defaults** — small quality of life
 6. **Connection profiles** — convenience, workaround is shell aliases
 7. **MCP server mode** — future, when the above are solid
+8. **Claude skill for plan analysis** — discoverability

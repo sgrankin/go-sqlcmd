@@ -23,5 +23,5 @@ jobs:
         # Verify: gh api repos/golangci/golangci-lint-action/git/ref/tags/v9 --jq '.object.sha'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.0.0
         with:
-          version: latest
+          version: v1.64.8
           only-new-issues: true

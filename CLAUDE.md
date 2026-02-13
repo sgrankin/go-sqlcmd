@@ -44,10 +44,10 @@ go test ./...
 ## Lint
 
 ```bash
-golangci-lint run
+go tool golangci-lint run
 ```
 
-CI uses `golangci-lint` with `only-new-issues: true` — no config file, just defaults.
+`golangci-lint` is declared in the `tool` directive in `go.mod` — use `go tool golangci-lint` to run it (no separate install needed). CI uses `golangci-lint` with `only-new-issues: true` — no config file, just defaults.
 
 ## Architecture
 
@@ -86,7 +86,7 @@ This is a **jj** (Jujutsu) repo colocated with git.
 
 ## Code Conventions
 
-- Go 1.24, module path `github.com/microsoft/go-sqlcmd` (upstream module path retained)
+- Go 1.26, module path `github.com/microsoft/go-sqlcmd` (upstream module path retained)
 - Tests use `testify/assert` and `testify/require`
 - Build version injected via `-ldflags="-X main.version=..."`
 - Custom linter in `cmd/sqlcmd-linter/` (import and assertion checks)
