@@ -169,9 +169,9 @@ func writeOperatorTree(w io.Writer, op *Operator, depth int, hasActual bool, hot
 		if hotSet[op.NodeID] {
 			hot = "  \u2605"
 		}
-		fmt.Fprintf(w, "[%3d] %s%-30s %8dr %5dms%s%s\n",
+		fmt.Fprintf(w, "[%3d] %s%-30s %8dr (est %6.0f) %5dms%s%s\n",
 			op.NodeID, indent, op.PhysicalOp,
-			op.ActualRows, op.ElapsedMs, obj, hot)
+			op.ActualRows, op.EstRows, op.ElapsedMs, obj, hot)
 	} else {
 		fmt.Fprintf(w, "[%3d] %s%-30s est=%.0f%s\n",
 			op.NodeID, indent, op.PhysicalOp,
