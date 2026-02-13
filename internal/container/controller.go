@@ -7,8 +7,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/netip"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -32,13 +35,42 @@ type Controller struct {
 func NewController() (c *Controller) {
 	var err error
 	c = new(Controller)
-	c.cli, err = client.NewClientWithOpts(
+	opts := []client.Opt{
 		client.FromEnv,
 		client.WithVersion("1.45"),
-	)
+	}
+	// If DOCKER_HOST isn't set, detect from Docker CLI context (handles
+	// Colima and other non-standard Docker socket locations).
+	if os.Getenv("DOCKER_HOST") == "" {
+		if host := detectDockerHost(); host != "" {
+			opts = append(opts, client.WithHost(host))
+		}
+	}
+	c.cli, err = client.NewClientWithOpts(opts...)
 	checkErr(err)
 
 	return
+}
+
+// detectDockerHost reads the current Docker context to find the socket endpoint.
+func detectDockerHost() string {
+	out, err := exec.Command("docker", "context", "inspect").Output()
+	if err != nil {
+		return ""
+	}
+	var contexts []struct {
+		Endpoints map[string]struct {
+			Host string `json:"Host"`
+		} `json:"Endpoints"`
+	}
+	if err := json.Unmarshal(out, &contexts); err != nil || len(contexts) == 0 {
+		return ""
+	}
+	ep, ok := contexts[0].Endpoints["docker"]
+	if !ok || !strings.HasPrefix(ep.Host, "unix://") {
+		return ""
+	}
+	return ep.Host
 }
 
 // EnsureImage creates a new instance of the Controller struct and initializes
