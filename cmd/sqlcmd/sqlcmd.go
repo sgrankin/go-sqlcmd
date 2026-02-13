@@ -87,6 +87,7 @@ type SQLCmdArguments struct {
 	ReadWrite                   bool
 	AllowExec                   bool
 	PlanFile                    string
+	Format                      string
 	// Keep Help at the end of the list
 	Help  bool
 	Ascii bool
@@ -523,6 +524,7 @@ func setFlags(rootCmd *cobra.Command, args *SQLCmdArguments) {
 	rootCmd.Flags().BoolVar(&args.ReadWrite, "rw", false, localizer.Sprintf("Disable read-only mode, allowing destructive SQL statements"))
 	rootCmd.Flags().BoolVar(&args.AllowExec, "allow-exec", false, localizer.Sprintf("Allow EXEC/EXECUTE statements in read-only mode"))
 	rootCmd.Flags().StringVar(&args.PlanFile, "plan-file", "", localizer.Sprintf("Write execution plan XML to the specified file"))
+	rootCmd.Flags().StringVar(&args.Format, "format", "", localizer.Sprintf("Output format: csv, jsonl"))
 }
 
 func setScriptVariable(v string) string {
@@ -890,7 +892,14 @@ func run(vars *sqlcmd.Variables, args *SQLCmdArguments) (int, error) {
 	}
 
 	s.Connect = &connectConfig
-	s.Format = sqlcmd.NewSQLCmdDefaultFormatter(vars, args.TrimSpaces, args.getControlCharacterBehavior(), sqlcmd.WithRawErrors(args.RawErrors))
+	switch args.Format {
+	case "csv":
+		s.Format = sqlcmd.NewCSVFormatter(sqlcmd.WithRawErrors(args.RawErrors))
+	case "jsonl":
+		s.Format = sqlcmd.NewJSONLFormatter(sqlcmd.WithRawErrors(args.RawErrors))
+	default:
+		s.Format = sqlcmd.NewSQLCmdDefaultFormatter(vars, args.TrimSpaces, args.getControlCharacterBehavior(), sqlcmd.WithRawErrors(args.RawErrors))
+	}
 	if args.OutputFile != "" {
 		err = s.RunCommand(s.Cmd["OUT"], []string{args.OutputFile})
 		if err != nil {

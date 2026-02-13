@@ -88,13 +88,17 @@ type sqlCmdFormatterType struct {
 	rawErrors            bool
 }
 
-// FormatterOption customizes the formatter returned by NewSQLCmdDefaultFormatter.
-type FormatterOption func(*sqlCmdFormatterType)
+type formatterOptions struct {
+	rawErrors bool
+}
+
+// FormatterOption customizes a Formatter.
+type FormatterOption func(*formatterOptions)
 
 // WithRawErrors makes AddError preserve the "mssql: " prefix that go-mssqldb
 // adds to error text instead of stripping it.
 func WithRawErrors(raw bool) FormatterOption {
-	return func(f *sqlCmdFormatterType) { f.rawErrors = raw }
+	return func(options *formatterOptions) { options.rawErrors = raw }
 }
 
 // NewSQLCmdDefaultFormatter returns an ASCII formatter when SQLCMDFORMAT is "ascii",
@@ -116,11 +120,18 @@ func NewSQLCmdDefaultFormatter(vars *Variables, removeTrailingSpaces bool, ccb C
 }
 
 func applyFormatterOptions(f *sqlCmdFormatterType, opts []FormatterOption) {
+	options := resolveFormatterOptions(opts)
+	f.rawErrors = options.rawErrors
+}
+
+func resolveFormatterOptions(opts []FormatterOption) formatterOptions {
+	options := formatterOptions{}
 	for _, opt := range opts {
 		if opt != nil {
-			opt(f)
+			opt(&options)
 		}
 	}
+	return options
 }
 
 // Adds the given string to the current line, wrapping it based on the screen width setting
@@ -240,6 +251,12 @@ func (f *sqlCmdFormatterType) AddMessage(msg string) {
 
 // AddError writes an error to the designated err Writer
 func (f *sqlCmdFormatterType) AddError(err error) {
+	if message := formatError(err, f.vars, f.rawErrors); message != "" {
+		f.mustWriteErr(message)
+	}
+}
+
+func formatError(err error, vars *Variables, rawErrors bool) string {
 	print := true
 	b := new(strings.Builder)
 	if errors.Is(err, context.DeadlineExceeded) {
@@ -248,13 +265,13 @@ func (f *sqlCmdFormatterType) AddError(err error) {
 	msg := err.Error()
 	switch e := (err).(type) {
 	case mssql.Error:
-		if print = f.vars.ErrorLevel() <= 0 || e.Class >= uint8(f.vars.ErrorLevel()); print {
+		if print = vars.ErrorLevel() <= 0 || e.Class >= uint8(vars.ErrorLevel()); print {
 			if len(e.ProcName) > 0 {
 				b.WriteString(localizer.Sprintf("Msg %#v, Level %d, State %d, Server %s, Procedure %s, Line %#v%s", e.Number, e.Class, e.State, e.ServerName, e.ProcName, e.LineNo, SqlcmdEol))
 			} else {
 				b.WriteString(localizer.Sprintf("Msg %#v, Level %d, State %d, Server %s, Line %#v%s", e.Number, e.Class, e.State, e.ServerName, e.LineNo, SqlcmdEol))
 			}
-			if !f.rawErrors {
+			if !rawErrors {
 				msg = strings.TrimPrefix(msg, "mssql: ")
 			}
 		}
@@ -262,8 +279,9 @@ func (f *sqlCmdFormatterType) AddError(err error) {
 	if print {
 		b.WriteString(msg)
 		b.WriteString(SqlcmdEol)
-		f.mustWriteErr(fitToScreen(b, f.vars.ScreenWidth()).String())
+		return fitToScreen(b, vars.ScreenWidth()).String()
 	}
+	return ""
 }
 
 // XmlMode enables or disables XML mode
@@ -493,14 +511,27 @@ func calcColumnDetails(cols []*sql.ColumnType, fixed int64, variable int64) ([]c
 
 // scanRow fetches the next row and converts each value to the appropriate string representation
 func (f *sqlCmdFormatterType) scanRow(rows *sql.Rows) ([]string, error) {
-	r := make([]interface{}, len(f.columnDetails))
+	cols := make([]*sql.ColumnType, len(f.columnDetails))
+	scales := make([]int, len(f.columnDetails))
+	for i := range f.columnDetails {
+		cols[i] = &f.columnDetails[i].col
+		scales[i] = f.columnDetails[i].scale
+	}
+	return scanRowStrings(rows, cols, scales)
+}
+
+// scanRowStrings scans a row and converts all values to strings.
+// Used by both the default formatter and CSV formatter.
+// scales provides the scale for each column (used for datetime formatting).
+func scanRowStrings(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]string, error) {
+	r := make([]interface{}, len(cols))
 	for i := range r {
 		r[i] = new(interface{})
 	}
 	if err := rows.Scan(r...); err != nil {
 		return nil, err
 	}
-	row := make([]string, len(f.columnDetails))
+	row := make([]string, len(cols))
 	for n, z := range r {
 		j := z.(*interface{})
 		if *j == nil {
@@ -508,9 +539,9 @@ func (f *sqlCmdFormatterType) scanRow(rows *sql.Rows) ([]string, error) {
 		} else {
 			switch x := (*j).(type) {
 			case []byte:
-				if isBinaryDataType(&f.columnDetails[n].col) {
+				if isBinaryDataType(cols[n]) {
 					row[n] = decodeBinary(x)
-				} else if f.columnDetails[n].col.DatabaseTypeName() == "UNIQUEIDENTIFIER" {
+				} else if cols[n].DatabaseTypeName() == "UNIQUEIDENTIFIER" {
 					// Unscramble the guid
 					// see https://github.com/denisenkom/go-mssqldb/issues/56
 					x[0], x[1], x[2], x[3] = x[3], x[2], x[1], x[0]
@@ -528,27 +559,11 @@ func (f *sqlCmdFormatterType) scanRow(rows *sql.Rows) ([]string, error) {
 			case string:
 				row[n] = x
 			case time.Time:
-				// Go lacks any way to get the user's preferred time format or even the system default
-				switch f.columnDetails[n].col.DatabaseTypeName() {
-				case "DATE":
-					row[n] = x.Format("2006-01-02")
-				case "DATETIME":
-					row[n] = x.Format(dateTimeFormatString(3, false))
-				case "DATETIME2":
-					row[n] = x.Format(dateTimeFormatString(f.columnDetails[n].scale, false))
-				case "SMALLDATETIME":
-					row[n] = x.Format(dateTimeFormatString(0, false))
-				case "DATETIMEOFFSET":
-					row[n] = x.Format(dateTimeFormatString(f.columnDetails[n].scale, true))
-				case "TIME":
-					format := "15:04:05"
-					if f.columnDetails[n].scale > 0 {
-						format = fmt.Sprintf("%s.%0*d", format, f.columnDetails[n].scale, 0)
-					}
-					row[n] = x.Format(format)
-				default:
-					row[n] = x.Format(time.RFC3339)
+				scale := 0
+				if n < len(scales) {
+					scale = scales[n]
 				}
+				row[n] = formatTime(x, cols[n].DatabaseTypeName(), scale)
 			case fmt.Stringer:
 				row[n] = x.String()
 			// not sure why go-mssql reports bit as bool
@@ -559,14 +574,88 @@ func (f *sqlCmdFormatterType) scanRow(rows *sql.Rows) ([]string, error) {
 					row[n] = "0"
 				}
 			default:
-				var err error
-				if row[n], err = fmt.Sprintf("%v", x), nil; err != nil {
-					return nil, err
-				}
+				row[n] = fmt.Sprintf("%v", x)
 			}
 		}
 	}
 	return row, nil
+}
+
+// scanRowTyped scans a row preserving Go types for JSON serialization.
+// nil → nil, int64/float64 preserved, bool preserved, time.Time → ISO string,
+// binary → "0x..." string, UNIQUEIDENTIFIER → UUID string.
+func scanRowTyped(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]interface{}, error) {
+	r := make([]interface{}, len(cols))
+	for i := range r {
+		r[i] = new(interface{})
+	}
+	if err := rows.Scan(r...); err != nil {
+		return nil, err
+	}
+	row := make([]interface{}, len(cols))
+	for n, z := range r {
+		j := z.(*interface{})
+		if *j == nil {
+			row[n] = nil
+		} else {
+			switch x := (*j).(type) {
+			case []byte:
+				if isBinaryDataType(cols[n]) {
+					row[n] = "0x" + decodeBinary(x)
+				} else if cols[n].DatabaseTypeName() == "UNIQUEIDENTIFIER" {
+					x[0], x[1], x[2], x[3] = x[3], x[2], x[1], x[0]
+					x[4], x[5] = x[5], x[4]
+					x[6], x[7] = x[7], x[6]
+					if guid, err := uuid.FromBytes(x); err == nil {
+						row[n] = guid.String()
+					} else {
+						row[n] = uuid.New().String()
+					}
+				} else {
+					row[n] = string(x)
+				}
+			case string:
+				row[n] = x
+			case time.Time:
+				scale := 0
+				if n < len(scales) {
+					scale = scales[n]
+				}
+				row[n] = formatTime(x, cols[n].DatabaseTypeName(), scale)
+			case bool:
+				row[n] = x
+			case int64, float64:
+				row[n] = x
+			default:
+				row[n] = fmt.Sprintf("%v", x)
+			}
+		}
+	}
+	return row, nil
+}
+
+// formatTime formats a time.Time value based on the SQL Server database type name.
+func formatTime(x time.Time, dbTypeName string, scale int) string {
+	switch dbTypeName {
+	case "DATE":
+		return x.Format("2006-01-02")
+	case "DATETIME":
+		return x.Format(dateTimeFormatString(3, false))
+	case "DATETIME2":
+		return x.Format(dateTimeFormatString(scale, false))
+	case "SMALLDATETIME":
+		return x.Format(dateTimeFormatString(0, false))
+	case "DATETIMEOFFSET":
+		return x.Format(dateTimeFormatString(scale, true))
+	case "TIME":
+		format := "15:04:05"
+		if scale > 0 {
+			format = fmt.Sprintf("%s.%0*d", format, scale, 0)
+		}
+		return x.Format(format)
+	default:
+		return x.Format(time.RFC3339)
+	}
 }
 
 func dateTimeFormatString(scale int, addOffset bool) string {

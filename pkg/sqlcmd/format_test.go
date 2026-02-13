@@ -202,3 +202,34 @@ func TestAddErrorWithRawErrorsAppliesToAsciiFormatter(t *testing.T) {
 
 	assert.Contains(t, errOut.String(), "mssql: Something failed", "ascii formatter must honor WithRawErrors")
 }
+
+func TestStructuredFormattersUseDefaultErrorSemantics(t *testing.T) {
+	formatters := map[string]func(...FormatterOption) Formatter{
+		"csv":   NewCSVFormatter,
+		"jsonl": NewJSONLFormatter,
+	}
+
+	for name, newFormatter := range formatters {
+		t.Run(name, func(t *testing.T) {
+			vars := InitializeVariables(false)
+			vars.Set(SQLCMDERRORLEVEL, "17")
+			out, errOut := new(strings.Builder), new(strings.Builder)
+			formatter := newFormatter()
+			formatter.BeginBatch("", vars, out, errOut)
+
+			formatter.AddError(mssql.Error{Number: 50000, State: 1, Class: 16, Message: "filtered", ServerName: "server", LineNo: 7})
+			assert.Empty(t, errOut.String())
+
+			formatter.AddError(mssql.Error{Number: 50001, State: 1, Class: 18, Message: "visible", ServerName: "server", LineNo: 8})
+			assert.Contains(t, errOut.String(), "Msg 50001, Level 18, State 1, Server server, Line 8")
+			assert.Contains(t, errOut.String(), "visible")
+			assert.NotContains(t, errOut.String(), "mssql:")
+
+			errOut.Reset()
+			formatter = newFormatter(WithRawErrors(true))
+			formatter.BeginBatch("", vars, out, errOut)
+			formatter.AddError(mssql.Error{Number: 50001, State: 1, Class: 18, Message: "visible", ServerName: "server", LineNo: 8})
+			assert.Contains(t, errOut.String(), "mssql: visible")
+		})
+	}
+}

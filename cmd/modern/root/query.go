@@ -22,6 +22,7 @@ type Query struct {
 	rw        bool
 	allowExec bool
 	planFile  string
+	format    string
 }
 
 func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
@@ -84,6 +85,11 @@ func (c *Query) DefineCommand(...cmdparser.CommandOptions) {
 		String: &c.planFile,
 		Name:   "plan-file",
 		Usage:  localizer.Sprintf("Write execution plan XML to the specified file")})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		String: &c.format,
+		Name:   "format",
+		Usage:  localizer.Sprintf("Output format: default, csv, jsonl")})
 }
 
 // run executes the Query command.
@@ -97,6 +103,7 @@ func (c *Query) run() {
 		ReadOnly:  !c.rw,
 		AllowExec: c.allowExec,
 		PlanFile:  c.planFile,
+		Format:    c.format,
 	})
 	if c.text == "" {
 		s.Connect(endpoint, user, sql.ConnectOptions{Database: c.database, Interactive: true})

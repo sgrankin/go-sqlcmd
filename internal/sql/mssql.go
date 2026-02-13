@@ -41,7 +41,14 @@ func (m *mssql) Connect(
 		}
 		m.sqlcmd.PlanFile = pf
 	}
-	m.sqlcmd.Format = sqlcmd.NewSQLCmdDefaultFormatter(v, false, sqlcmd.ControlIgnore)
+	switch m.format {
+	case "csv":
+		m.sqlcmd.Format = sqlcmd.NewCSVFormatter()
+	case "jsonl":
+		m.sqlcmd.Format = sqlcmd.NewJSONLFormatter()
+	default:
+		m.sqlcmd.Format = sqlcmd.NewSQLCmdDefaultFormatter(v, false, sqlcmd.ControlIgnore)
+	}
 	connect := sqlcmd.ConnectSettings{
 		ServerName: fmt.Sprintf(
 			"%s,%#v",

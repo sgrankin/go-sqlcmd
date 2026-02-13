@@ -8,6 +8,7 @@ type SqlOptions struct {
 	ReadOnly    bool
 	AllowExec   bool
 	PlanFile    string
+	Format      string
 }
 
 func New(options SqlOptions) Sql {
@@ -18,6 +19,7 @@ func New(options SqlOptions) Sql {
 			readOnly:  options.ReadOnly,
 			allowExec: options.AllowExec,
 			planFile:  options.PlanFile,
+			format:    options.Format,
 		}
 	}
 }

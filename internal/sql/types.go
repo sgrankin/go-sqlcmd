@@ -12,6 +12,7 @@ type mssql struct {
 	readOnly  bool
 	allowExec bool
 	planFile  string
+	format    string
 }
 
 // mock impoements for unit testing which uses a Hello World container (no

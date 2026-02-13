@@ -15,7 +15,7 @@ Implemented in `pkg/sqlcmd/readonly.go`. Client-side safety net that rejects des
 - Wired into both legacy (`cmd/sqlcmd`) and modern (`cmd/modern/root/query.go`) CLI paths
 - `ApplicationIntent=ReadOnly` for read replicas is orthogonal and not yet implemented
 
-## 2. Proper query plan output
+## 2. ~~Proper query plan output~~ DONE (2a)
 
 **Problem**: When `SET STATISTICS XML ON` is active, the execution plan XML is returned as a regular result column. sqlcmd's column-width wrapping (`-w 65535`) splits the XML across lines, producing invalid XML that requires manual reassembly:
 
@@ -62,27 +62,45 @@ The ShowPlan XML schema is well-documented by Microsoft, so typed Go structs wou
 
 Default to human-readable text (matching current Python script output). Consider also supporting `--format json` for machine consumption (e.g., for CI pipelines comparing plan metrics across commits).
 
-## 4. Machine-readable output formats
+## 4. ~~Machine-readable output formats~~ DONE
 
-**Problem**: The default tabular output is lossy (truncation, alignment ambiguity) and not queryable. For analysis workflows, you want to run follow-up queries against results without re-hitting the server.
+Implemented `--format csv` and `--format jsonl` for both modern CLI (`sqlcmd query --format csv`) and legacy CLI (`sqlcmd -Q "..." --format csv`).
 
-**Proposal**: Add `--format` options:
+- **CSV**: `encoding/csv` writer, column names as header row, NULL → empty string, messages/errors to stderr
+- **JSONL**: One JSON object per line, type-preserving (numbers as numbers, bools as bools, nulls as JSON null, dates as ISO strings, binary as `0x...` hex)
+- **Implementation**: `pkg/sqlcmd/format_csv.go`, `pkg/sqlcmd/format_jsonl.go` implement the `Formatter` interface
+- Shared helpers extracted: `scanRowStrings()`, `scanRowTyped()`, `formatTime()` in `format.go`
 
 ```bash
-# CSV — universal interchange, DuckDB reads it natively
-sqlcmd --profile dev --format csv -Q "SELECT ..." -o /tmp/results.csv
-duckdb -c "SELECT * FROM '/tmp/results.csv' WHERE Demand > 100"
+# CSV output (modern CLI)
+sqlcmd query "SELECT name, database_id FROM sys.databases" --format csv
 
-# JSONL — one JSON object per row, self-describing, no truncation
-sqlcmd --profile dev --format jsonl -Q "SELECT ..." -o /tmp/results.jsonl
-duckdb -c "SELECT * FROM read_json('/tmp/results.jsonl') WHERE Demand > 100"
+# CSV output (legacy CLI)
+sqlcmd -Q "SELECT name, database_id FROM sys.databases" --format csv
+
+# JSONL output — preserves types (numbers, bools, nulls)
+sqlcmd query "SELECT name, database_id FROM sys.databases" --format jsonl
+
+# Save to file and query with DuckDB
+sqlcmd -Q "SELECT * FROM large_table" --format csv -o /tmp/results.csv
+duckdb -c "SELECT * FROM '/tmp/results.csv' WHERE amount > 100"
+
+# JSONL to file, query with DuckDB
+sqlcmd -Q "SELECT * FROM large_table" --format jsonl -o /tmp/results.jsonl
+duckdb -c "SELECT * FROM read_json('/tmp/results.jsonl') WHERE amount > 100"
+
+# JSONL piped to jq
+sqlcmd query "SELECT name, database_id FROM sys.databases" --format jsonl | jq '.name'
+
+# Combine with --plan-file for analysis workflows
+sqlcmd -Q "SELECT * FROM orders" --format csv -o results.csv --plan-file plan.xml
 ```
 
-sqlcmd already has JSON/YAML formatters in `internal/output/formatter/`. JSONL and CSV should be small extensions.
-
-**Key design point**: Don't build a query engine into sqlcmd. Output clean structured data and let DuckDB (or sqlite3, jq, pandas, etc.) handle analytical queries on the result. DuckDB's `read_csv_auto()` and `read_json_auto()` handle schema inference, so the output just needs to be correct, not clever.
-
-**Type fidelity**: CSV loses types (everything is a string). JSONL preserves numbers vs strings vs nulls. For most analysis workflows CSV is fine since DuckDB infers types well, but JSONL is better when exact types matter (e.g., distinguishing 0 from NULL, or decimal precision).
+**Design notes**:
+- Messages like "(N rows affected)" go to stderr, keeping stdout clean for piping
+- CSV NULL values are empty fields (DuckDB's `read_csv_auto()` handles this correctly)
+- JSONL NULL values are JSON `null` (unambiguous)
+- Multiple result sets in one query produce consecutive output (CSV: each with its own header row; JSONL: consecutive objects)
 
 ## 5. Better defaults for large output
 
@@ -128,8 +146,8 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 ## Priority
 
 1. ~~**Read-only mode**~~ — DONE
-2. **`--plan` flag** — biggest workflow friction point today
-3. **`--format csv/jsonl`** — enables DuckDB-based analysis workflows
+2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
+3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
 4. **Plan analysis** — nice to have, Python scripts work fine as stopgap
 5. **Better defaults** — small quality of life
 6. **Connection profiles** — convenience, workaround is shell aliases
