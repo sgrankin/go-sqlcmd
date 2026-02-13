@@ -383,6 +383,136 @@ func TestMultiplePlanDocuments(t *testing.T) {
 	require.Len(t, plans, 2)
 }
 
+func TestFormatTextMultiStatement(t *testing.T) {
+	// Cover the multi-statement separator in FormatText
+	result := &Result{
+		Statements: []StatementResult{
+			{
+				Attrs:     map[string]string{"StatementSubTreeCost": "1.0"},
+				PlanAttrs: map[string]string{"DegreeOfParallelism": "1"},
+				Root:      &Operator{NodeID: 0, PhysicalOp: "Scan", EstRows: 10},
+			},
+			{
+				Attrs:     map[string]string{"StatementSubTreeCost": "2.0"},
+				PlanAttrs: map[string]string{"DegreeOfParallelism": "2"},
+				Root:      &Operator{NodeID: 0, PhysicalOp: "Seek", EstRows: 20},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "Cost: 1.0")
+	assert.Contains(t, output, "Cost: 2.0")
+	assert.Contains(t, output, "====") // separator between statements
+	assert.Contains(t, output, "Scan")
+	assert.Contains(t, output, "Seek")
+}
+
+func TestFormatTextGrantedMemory(t *testing.T) {
+	// Cover the GrantedMemory + MaxUsedMemory branch in writeSummaryHeader
+	result := &Result{
+		Statements: []StatementResult{{
+			Attrs: map[string]string{"StatementSubTreeCost": "5.0"},
+			MemoryGrant: map[string]string{
+				"GrantedMemory":  "208968",
+				"MaxUsedMemory":  "50120",
+				"DesiredMemory":  "300000",
+				"RequestedMemory": "250000",
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "Memory: 208968KB granted, 50120KB used")
+}
+
+func TestFormatTextGrantedMemoryNoUsed(t *testing.T) {
+	// Cover the GrantedMemory without MaxUsedMemory branch
+	result := &Result{
+		Statements: []StatementResult{{
+			MemoryGrant: map[string]string{
+				"GrantedMemory": "1024",
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "Memory: 1024KB granted")
+	assert.NotContains(t, output, "used")
+}
+
+func TestFormatTextPlanHashAndEarlyAbort(t *testing.T) {
+	// Cover QueryPlanHash and StatementOptmEarlyAbortReason
+	result := &Result{
+		Statements: []StatementResult{{
+			Attrs: map[string]string{
+				"QueryPlanHash":                "0x5E2464189556E65D",
+				"StatementOptmLevel":           "FULL",
+				"StatementOptmEarlyAbortReason": "TimeOut",
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "PlanHash: 0x5E2464189556E65D")
+	assert.Contains(t, output, "Optimizer: FULL (TimeOut)")
+}
+
+func TestFormatTextWarningNoDetail(t *testing.T) {
+	// Cover the warning with empty Detail (non-ColumnsWithNoStatistics)
+	result := &Result{
+		Statements: []StatementResult{{
+			HasActualInfo: true,
+			Root:          &Operator{NodeID: 0, PhysicalOp: "Root"},
+			OpWarnings: []OpWarning{
+				{NodeID: 5, Tag: "SpillToTempDb"},
+				{NodeID: 3, Tag: "NoJoinPredicate", Detail: "some detail"},
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "Node 5: SpillToTempDb")
+	assert.NotContains(t, output, "SpillToTempDb —")
+	assert.Contains(t, output, "Node 3: NoJoinPredicate — some detail")
+}
+
+func TestFormatTextMissingStatsFallback(t *testing.T) {
+	// Cover the formatAttrs fallback in writeMissingStats
+	// when Table/Column keys aren't present
+	result := &Result{
+		Statements: []StatementResult{{
+			MissingStats: []map[string]string{
+				{"Schema": "[dbo]", "Table": "[t1]", "Column": "val"},
+				{"SomeKey": "SomeValue"},
+			},
+		}},
+	}
+
+	var buf bytes.Buffer
+	FormatText(&buf, result)
+	output := buf.String()
+
+	assert.Contains(t, output, "Missing Statistics:")
+	assert.Contains(t, output, "t1.val")
+	assert.Contains(t, output, "SomeKey=SomeValue")
+}
+
 // findRelOp walks the RelOp tree to find a node by ID.
 func findRelOp(relop *RelOp, nodeID int) *RelOp {
 	if relop == nil {
