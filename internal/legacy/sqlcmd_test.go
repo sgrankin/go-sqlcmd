@@ -610,6 +610,21 @@ func TestConvertOsArgs(t *testing.T) {
 			[]string{"-X", "-k2"},
 			[]string{"-X", "0", "-k2"},
 		},
+		{
+			"-i file with long flag and -o",
+			[]string{"-S", "server", "-d", "db", "-G", "-i", "query.sql", "--plan-file", "plan.xml", "-o", "/dev/null"},
+			[]string{"-S", "server", "-d", "db", "-G", "-i", "query.sql", "--plan-file", "plan.xml", "-o", "/dev/null"},
+		},
+		{
+			"empty string in args does not panic",
+			[]string{"-S", "server", "", "-o", "out.txt"},
+			[]string{"-S", "server", "", "-o", "out.txt"},
+		},
+		{
+			"empty string after flag does not panic",
+			[]string{"-r", ""},
+			[]string{"-r", ""},
+		},
 	}
 	for _, c := range tests {
 		t.Run(c.name, func(t *testing.T) {
