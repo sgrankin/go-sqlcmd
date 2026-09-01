@@ -216,6 +216,18 @@ func TestInvalidCommandLine(t *testing.T) {
 	}
 }
 
+func TestAuthenticationMethodHelpDocumentsAzureCloud(t *testing.T) {
+	arguments := &SQLCmdArguments{}
+	cmd := &cobra.Command{}
+	setFlags(cmd, arguments)
+
+	flag := cmd.Flags().Lookup("authentication-method")
+	if assert.NotNil(t, flag) {
+		assert.Contains(t, flag.Usage, "AZURE_CLOUD_NAME")
+		assert.Contains(t, flag.Usage, "AzureUSGovernment")
+	}
+}
+
 func TestValidateFlags(t *testing.T) {
 	type cmdLineTest struct {
 		commandLine  []string

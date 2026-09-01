@@ -127,6 +127,7 @@ func TestE2E_Help(t *testing.T) {
 	require.NoError(t, err, "sqlcmd --help should not error")
 	assert.Contains(t, string(output), "sqlcmd", "help output should mention sqlcmd")
 	assert.Contains(t, string(output), "Usage:", "help output should contain Usage section")
+	assert.Contains(t, string(output), "AZURE_CLOUD_NAME=AzureUSGovernment", "help output should document Azure CLI cloud selection")
 }
 
 // TestE2E_Version verifies that --version flag works.

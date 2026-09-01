@@ -41,6 +41,8 @@ func (c *Root) DefineCommand(...cmdparser.CommandOptions) {
 			Steps: steps},
 		{Description: localizer.Sprintf("View configuration information and connection strings"),
 			Steps: []string{"sqlcmd config view", "sqlcmd config cs"}},
+		{Description: localizer.Sprintf("Connect to Azure SQL with an Azure CLI login in a sovereign cloud"),
+			Steps: []string{"AZURE_CLOUD_NAME=AzureUSGovernment sqlcmd -S server.database.usgovcloudapi.net -d database --authentication-method ActiveDirectoryAzCli -N true -C"}},
 	}
 
 	const feedbackUrl = "https://github.com/sgrankin/go-sqlcmd/issues/new"

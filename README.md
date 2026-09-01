@@ -249,6 +249,32 @@ Use this method when running sqlcmd on an Azure VM that has either a system-assi
 
 This method authenticates the provided username as a service principal id and the password as the client secret for the service principal. Provide a username in the form `<service principal id>@<tenant id>`. Set `SQLCMDPASSWORD` variable to the client secret. If using a certificate instead of a client secret, set `AZURE_CLIENT_CERTIFICATE_PATH` environment variable to the path of the certificate file.
 
+`ActiveDirectoryAzCli`
+
+This method authenticates as the account logged in to the Azure CLI.
+To target a sovereign cloud without changing the cloud selected by `az cloud set`,
+set the Azure CLI `AZURE_CLOUD_NAME` environment variable for the `sqlcmd` process:
+
+```sh
+AZURE_CLOUD_NAME=AzureUSGovernment \
+sqlcmd \
+    -S server.database.usgovcloudapi.net \
+    -d database \
+    --authentication-method ActiveDirectoryAzCli \
+    -N true -C
+```
+
+Use `AZURE_CLOUD_NAME=AzureCloud` for the commercial cloud.
+The selected cloud must already have a cached Azure CLI login and default account.
+If necessary, log in without changing the globally selected cloud:
+
+```sh
+AZURE_CLOUD_NAME=AzureUSGovernment az login
+```
+
+`AZURE_AUTHORITY_HOST` does not select the cloud used by `ActiveDirectoryAzCli`.
+This authentication method invokes the Azure CLI, which uses its own cloud configuration.
+
 #### Environment variables for AAD auth
 
 Some settings for AAD auth do not have command line inputs, and some environment variables are consumed directly by the `azidentity` package used by `sqlcmd`.
