@@ -53,10 +53,16 @@ sqlcmd plan analyze --format json -o analysis.json --summary plan.xml
 # Run a query and analyze its plan in one step
 sqlcmd plan analyze -Q "SELECT * FROM orders" -S server -d dbname
 
+# Compile without executing and analyze the estimated plan
+sqlcmd plan analyze -Q "SELECT * FROM orders" -S server -d dbname --estimated
+
 # Capture + analyze in one step, write analysis to file with summary
 sqlcmd -S server -d dbname -Q "SELECT * FROM orders" --analyze-file analysis.txt --summary
 sqlcmd -S server -d dbname -Q "SELECT * FROM orders" --analyze-file analysis.txt --plan-file plan.xml --summary
 ```
+
+Use `--estimated` when executing the query would be unsafe or unnecessarily expensive.
+Estimated plans contain compile-time estimates and warnings, but no runtime row counts, elapsed time, spills, or cardinality-error measurements.
 
 ## AI-Friendly Workflow (Recommended)
 

@@ -44,7 +44,8 @@ When outputting normally (no `--plan` flag), detect result columns containing `<
 
 ## 3. ~~Built-in plan analysis~~ DONE
 
-Ported Python plan analysis scripts into native Go in `internal/plan/`. Three usage modes:
+Ported Python plan analysis scripts into native Go in `internal/plan/`.
+Four usage modes:
 
 ```bash
 # Analyze a saved plan file
@@ -53,6 +54,9 @@ sqlcmd plan analyze --format json plan.xml
 
 # Run a query and analyze its plan (no data output)
 sqlcmd plan analyze -Q "SELECT * FROM orders" --database mydb
+
+# Compile without executing and analyze the estimated plan
+sqlcmd plan analyze -Q "SELECT * FROM orders" --database mydb --estimated
 
 # Normal query + analysis written to a file
 sqlcmd query --analyze-file analysis.txt "SELECT * FROM orders"
@@ -163,7 +167,7 @@ Covers plan capture (`--plan-file`), analysis (`sqlcmd plan analyze`, `--analyze
 1. ~~**Read-only mode**~~ — DONE
 2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
 3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
-4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze-file`)
+4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze-file`, `--estimated`)
 5. ~~**Better defaults**~~ — DONE
 6. ~~**Query plan analysis skill**~~ — DONE
 7. **Azure AD auto-detect** — default to ActiveDirectoryDefault for *.database.windows.net, next up

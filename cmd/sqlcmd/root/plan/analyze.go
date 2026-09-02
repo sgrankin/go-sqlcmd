@@ -25,6 +25,7 @@ type Analyze struct {
 	format     string
 	outputFile string
 	summary    bool
+	estimated  bool
 }
 
 func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
@@ -39,6 +40,10 @@ func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
 			{
 				Description: localizer.Sprintf("Run a query and analyze its execution plan"),
 				Steps:       []string{`sqlcmd plan analyze -Q "SELECT * FROM orders" --database mydb`},
+			},
+			{
+				Description: localizer.Sprintf("Compile a query and analyze its estimated plan"),
+				Steps:       []string{`sqlcmd plan analyze -Q "SELECT * FROM orders" --estimated`},
 			},
 			{
 				Description: localizer.Sprintf("Analyze with JSON output"),
@@ -64,7 +69,7 @@ func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
 		String:    &c.query,
 		Name:      "query",
 		Shorthand: "Q",
-		Usage:     localizer.Sprintf("SQL query to execute and analyze"),
+		Usage:     localizer.Sprintf("SQL query to analyze"),
 	})
 
 	c.AddFlag(cmdparser.FlagOptions{
@@ -104,27 +109,27 @@ func (c *Analyze) DefineCommand(...cmdparser.CommandOptions) {
 		Name:  "summary",
 		Usage: localizer.Sprintf("Print concise summary instead of full output"),
 	})
+
+	c.AddFlag(cmdparser.FlagOptions{
+		Bool:  &c.estimated,
+		Name:  "estimated",
+		Usage: localizer.Sprintf("Compile the query without executing it and analyze the estimated plan"),
+	})
 }
 
 func (c *Analyze) run() {
 	var data []byte
 
-	if c.file != "" && c.query != "" {
-		c.CheckErr(fmt.Errorf("cannot specify both a plan file and a query"))
-		return
-	}
+	c.CheckErr(c.validateInput())
 
 	if c.file != "" {
 		// Mode 1: Analyze from file
 		var err error
 		data, err = os.ReadFile(c.file)
 		c.CheckErr(err)
-	} else if c.query != "" {
+	} else {
 		// Mode 2: Run query, capture plan, analyze
 		data = c.captureQueryPlan()
-	} else {
-		c.CheckErr(fmt.Errorf("specify a plan file or use -Q to run a query"))
-		return
 	}
 
 	plans, err := plan.Parse(data)
@@ -132,6 +137,19 @@ func (c *Analyze) run() {
 
 	result := plan.Analyze(plans)
 	c.writeOutput(result)
+}
+
+func (c *Analyze) validateInput() error {
+	switch {
+	case c.file != "" && c.query != "":
+		return fmt.Errorf("cannot specify both a plan file and a query")
+	case c.estimated && c.query == "":
+		return fmt.Errorf("--estimated requires -Q/--query")
+	case c.file == "" && c.query == "":
+		return fmt.Errorf("specify a plan file or use -Q to run a query")
+	default:
+		return nil
+	}
 }
 
 func (c *Analyze) captureQueryPlan() []byte {
@@ -148,9 +166,10 @@ func (c *Analyze) captureQueryPlan() []byte {
 
 func (c *Analyze) sqlOptions(planBuffer io.Writer) sql.SqlOptions {
 	return sql.SqlOptions{
-		ReadOnly:   !c.rw,
-		AllowExec:  c.allowExec,
-		PlanBuffer: planBuffer,
+		ReadOnly:      !c.rw,
+		AllowExec:     c.allowExec,
+		PlanBuffer:    planBuffer,
+		EstimatedPlan: c.estimated,
 	}
 }
 

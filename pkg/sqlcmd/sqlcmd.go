@@ -97,10 +97,12 @@ type Sqlcmd struct {
 	// AllowExec allows EXEC/EXECUTE statements in read-only mode
 	AllowExec bool
 	// PlanFile, when non-nil, enables execution plan collection.
-	// Queries are wrapped in SET STATISTICS XML ON and showplan XML
-	// result sets are written to PlanFile instead of normal output.
+	// Showplan XML result sets are written to PlanFile instead of normal output.
 	// Data result sets are still sent to the regular output.
 	PlanFile io.Writer
+	// EstimatedPlan uses SET SHOWPLAN_XML ON to compile queries without executing them.
+	// It has no effect when PlanFile is nil.
+	EstimatedPlan bool
 	// ResultSets is populated after each Run call with metadata about all
 	// data result sets (column names and row counts).
 	ResultSets []ResultSetInfo
@@ -489,8 +491,19 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 		defer cancel()
 		ctx = ct
 	}
+	planOff := ""
 	if s.PlanFile != nil {
-		_, _ = s.db.ExecContext(ctx, "SET STATISTICS XML ON")
+		planOn := "SET STATISTICS XML ON"
+		planOff = "SET STATISTICS XML OFF"
+		if s.EstimatedPlan {
+			planOn = "SET SHOWPLAN_XML ON"
+			planOff = "SET SHOWPLAN_XML OFF"
+		}
+		if _, err := s.db.ExecContext(ctx, planOn); err != nil {
+			s.Format.AddError(err)
+			s.Format.EndBatch()
+			return -100, err
+		}
 	}
 	retmsg := &sqlexp.ReturnMessage{}
 	rows, qe := s.db.QueryContext(ctx, query, retmsg)
@@ -589,6 +602,18 @@ func (s *Sqlcmd) runQuery(query string) (int, error) {
 				}
 				s.Format.EndResultSet()
 				s.ResultSets = append(s.ResultSets, rsInfo)
+			}
+		}
+	}
+	if planOff != "" {
+		if rows != nil {
+			_ = rows.Close()
+		}
+		if _, offErr := s.db.ExecContext(context.Background(), planOff); offErr != nil {
+			s.Format.AddError(offErr)
+			if qe == nil {
+				retcode = -100
+				qe = offErr
 			}
 		}
 	}

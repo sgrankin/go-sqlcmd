@@ -11,13 +11,14 @@ import (
 
 // mssql implements for SQL Server
 type mssql struct {
-	sqlcmd     *sqlcmd.Sqlcmd
-	console    sqlcmd.Console
-	readOnly   bool
-	allowExec  bool
-	planFile   string
-	planBuffer io.Writer
-	format     string
+	sqlcmd        *sqlcmd.Sqlcmd
+	console       sqlcmd.Console
+	readOnly      bool
+	allowExec     bool
+	planFile      string
+	planBuffer    io.Writer
+	estimatedPlan bool
+	format        string
 }
 
 // mock impoements for unit testing which uses a Hello World container (no

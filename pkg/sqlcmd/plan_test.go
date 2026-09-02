@@ -115,3 +115,22 @@ func TestPlanFileTrivialQueryNoShowplan(t *testing.T) {
 	// No showplan for trivial queries — plan buffer may be empty
 	assert.Equal(t, "", planBuf.String(), "no showplan for constant expression")
 }
+
+func TestEstimatedPlanDoesNotExecuteQuery(t *testing.T) {
+	s, _ := setupSqlCmdWithMemoryOutput(t)
+	_, err := s.db.ExecContext(t.Context(), "CREATE TABLE #estimated_plan_test (id INT)")
+	require.NoError(t, err)
+
+	planBuf := &bytes.Buffer{}
+	s.PlanFile = planBuf
+	s.EstimatedPlan = true
+	s.Query = "INSERT INTO #estimated_plan_test VALUES (1)"
+
+	require.NoError(t, s.Run(true, false))
+	assert.Contains(t, planBuf.String(), "<ShowPlanXML")
+	assert.NotContains(t, planBuf.String(), "<RunTimeInformation>")
+
+	var count int
+	require.NoError(t, s.db.QueryRowContext(t.Context(), "SELECT COUNT(*) FROM #estimated_plan_test").Scan(&count))
+	assert.Zero(t, count, "estimated plan query must not execute")
+}

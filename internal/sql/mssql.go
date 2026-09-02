@@ -35,6 +35,7 @@ func (m *mssql) Connect(
 	m.sqlcmd = sqlcmd.New(m.console, "", v)
 	m.sqlcmd.ReadOnly = m.readOnly
 	m.sqlcmd.AllowExec = m.allowExec
+	m.sqlcmd.EstimatedPlan = m.estimatedPlan
 	switch {
 	case m.planFile != "" && m.planBuffer != nil:
 		pf, pfErr := os.Create(m.planFile)
