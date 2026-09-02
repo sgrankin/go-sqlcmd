@@ -1,7 +1,6 @@
 ---
 name: sql-profiling
-description: Profile SQL Server queries — capture execution plans, analyze performance, and explore results locally with DuckDB. Use when a query is slow, needs optimization, or the user wants to understand query behavior.
-argument-hint: "[query or plan.xml path]"
+description: Analyze SQL Server query plans, profile slow queries, and explore results locally with DuckDB. Use when a query is slow, needs optimization, or the user wants to understand query behavior.
 allowed-tools: Bash(sqlcmd *), Bash(duckdb *), Bash(mkdir *), Read, Write, Glob, Grep
 ---
 
@@ -9,7 +8,12 @@ allowed-tools: Bash(sqlcmd *), Bash(duckdb *), Bash(mkdir *), Read, Write, Glob,
 
 Use sqlcmd's built-in plan capture and analysis features to profile SQL Server queries.
 
-Write all output files (plan XML, CSV, JSONL) to `/tmp/claude/` so they don't clutter the working directory. Create it with `mkdir -p /tmp/claude` if needed.
+Write all output files (plan XML, CSV, JSONL) to `/tmp/sql-profiling/` so they don't clutter the working directory.
+Create it with `mkdir -p /tmp/sql-profiling` if needed.
+
+Keep database operations read-only unless the user explicitly authorizes a write against a named target.
+The `--rw` flag disables sqlcmd's read-only protection; never add it automatically.
+Treat plan findings as hypotheses to verify before recommending a production change.
 
 ## Connecting to Azure SQL
 
@@ -44,7 +48,7 @@ sqlcmd plan analyze plan.xml
 sqlcmd plan analyze --format json plan.xml
 
 # Write JSON to file + summary to stdout
-sqlcmd plan analyze -o analysis.json --summary plan.xml
+sqlcmd plan analyze --format json -o analysis.json --summary plan.xml
 
 # Run a query and analyze its plan in one step
 sqlcmd plan analyze -Q "SELECT * FROM orders" -S server -d dbname
@@ -62,16 +66,16 @@ Use `--summary` and file output flags to minimize context window usage:
 # Full capture: data to file, plan to file, analysis to file, summary to stdout
 sqlcmd -S server -d dbname \
   -Q "SELECT * FROM orders WHERE date > '2024-01-01'" \
-  -o /tmp/claude/results.csv --format csv \
-  --plan-file /tmp/claude/plan.xml \
-  --analyze-file /tmp/claude/analysis.txt \
+  -o /tmp/sql-profiling/results.csv --format csv \
+  --plan-file /tmp/sql-profiling/plan.xml \
+  --analyze-file /tmp/sql-profiling/analysis.txt \
   --summary
 
 # Output is concise:
 # 12,847 rows, 8 columns [order_id, customer_id, amount, ...]
-# Results: /tmp/claude/results.csv
-# Plan: /tmp/claude/plan.xml
-# Analysis: /tmp/claude/analysis.txt
+# Results: /tmp/sql-profiling/results.csv
+# Plan: /tmp/sql-profiling/plan.xml
+# Analysis: /tmp/sql-profiling/analysis.txt
 # Cost: 142.3 | DOP: 4 | Elapsed: 2340ms | CPU: 8120ms
 # Cardinality errors: Node 15 (847x over), Node 23 (12x under)
 
@@ -97,8 +101,8 @@ Shows the execution plan as an indented tree with:
 - Look for: Table Scans (missing indexes), Hash Matches (memory-hungry joins), Sorts (could indicate missing index ordering).
 
 ### Cardinality Errors
-Lists operators where estimated vs actual rows diverge most. A ratio >10x usually means:
-- **Stale statistics**: Run `UPDATE STATISTICS table_name` or `sp_updatestats`
+Lists operators where estimated vs actual rows diverge most. A ratio >10x can indicate:
+- **Stale statistics**: Verify statistics freshness before proposing a targeted update
 - **Missing statistics**: Check the "Missing Statistics" section
 - **Parameter sniffing**: The cached plan was optimized for different parameter values
 - **Correlated predicates**: The optimizer assumes column independence
@@ -111,8 +115,8 @@ Lists operators where estimated vs actual rows diverge most. A ratio >10x usuall
 
 ## Common Optimization Actions
 
-1. **Missing index**: The plan may suggest one. Evaluate with `sqlcmd plan analyze` output.
-2. **Update statistics**: `EXEC sp_updatestats` or target specific tables.
+1. **Missing index**: Treat a plan suggestion as a lead; check existing indexes and write overhead before recommending it.
+2. **Update statistics**: Verify that statistics are stale, then prefer a targeted update over `sp_updatestats`.
 3. **Rewrite query**: Eliminate implicit conversions, simplify joins, break up complex CTEs.
 4. **Compare plans**: Capture plans for two query variants and compare costs and operator trees.
 
@@ -138,27 +142,28 @@ This is useful for local aggregation, filtering, or exploration of large result 
 ## Typical Workflow
 
 ```bash
-mkdir -p /tmp/claude
+mkdir -p /tmp/sql-profiling
 
 # 1. Capture everything, get summary
 sqlcmd -S myserver -d mydb \
   -Q "SELECT o.*, c.name FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.date > '2024-01-01'" \
-  -o /tmp/claude/results.jsonl --format jsonl \
-  --plan-file /tmp/claude/plan.xml \
-  --analyze-file /tmp/claude/analysis.txt \
+  -o /tmp/sql-profiling/results.jsonl --format jsonl \
+  --plan-file /tmp/sql-profiling/plan.xml \
+  --analyze-file /tmp/sql-profiling/analysis.txt \
   --summary
 
 # 2. Explore results locally if needed
-duckdb -c "SUMMARIZE SELECT * FROM read_json('/tmp/claude/results.jsonl')"
+duckdb -c "SUMMARIZE SELECT * FROM read_json('/tmp/sql-profiling/results.jsonl')"
 
 # 3. Read the flat text analysis for operator tree, cardinality errors, warnings
-# cat /tmp/claude/analysis.txt
+# cat /tmp/sql-profiling/analysis.txt
 
-# 4. If cardinality errors are high, update statistics
+# 4. If evidence confirms stale statistics, propose a targeted update.
+# Run it only after explicit authorization for this database.
 sqlcmd -S myserver -d mydb -Q "UPDATE STATISTICS orders; UPDATE STATISTICS customers" --rw
 
 # 5. Re-capture and compare
 sqlcmd -S myserver -d mydb \
   -Q "SELECT o.*, c.name FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.date > '2024-01-01'" \
-  --analyze-file /tmp/claude/analysis2.txt --summary
+  --analyze-file /tmp/sql-profiling/analysis2.txt --summary
 ```

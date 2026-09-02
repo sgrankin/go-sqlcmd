@@ -54,13 +54,13 @@ sqlcmd plan analyze --format json plan.xml
 # Run a query and analyze its plan (no data output)
 sqlcmd plan analyze -Q "SELECT * FROM orders" --database mydb
 
-# Normal query + analysis appended
-sqlcmd query --analyze "SELECT * FROM orders"
-sqlcmd query --analyze --plan-file plan.xml "SELECT ..."
+# Normal query + analysis written to a file
+sqlcmd query --analyze-file analysis.txt "SELECT * FROM orders"
+sqlcmd query --analyze-file analysis.txt --plan-file plan.xml "SELECT ..."
 
 # Legacy CLI
-sqlcmd -Q "SELECT ..." --analyze
-sqlcmd -Q "SELECT ..." --analyze --plan-file plan.xml
+sqlcmd -Q "SELECT ..." --analyze-file analysis.txt
+sqlcmd -Q "SELECT ..." --analyze-file analysis.txt --plan-file plan.xml
 ```
 
 **Analysis output includes**:
@@ -139,7 +139,9 @@ Not worth it — connection strings are just server + database name, short enoug
 
 ## 7. ~~MCP server mode~~ DROPPED
 
-Not worth the complexity. The CLI with `--format jsonl/csv` and `--plan-file` already works well for programmatic use from Claude Code or scripts. Shell invocation is fine.
+Not worth the complexity.
+The CLI with `--format jsonl/csv` and `--plan-file` already works well for programmatic use from coding agents or scripts.
+Shell invocation is fine.
 
 ## 8. ~~Test infrastructure: testcontainers-go~~ DONE
 
@@ -151,18 +153,19 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 - **Respects existing server**: If `SQLCMDSERVER` is already set, no container is started
 - **Graceful degradation**: If Docker is unavailable, prints message and tests that need SQL fail individually
 
-## 9. ~~Claude skill for query plan analysis~~ DONE
+## 9. ~~Query plan analysis skill~~ DONE
 
-Implemented in `.claude/skills/query-plan-analysis.md`. Covers plan capture (`--plan-file`), analysis (`sqlcmd plan analyze`, `--analyze`), reading analysis output (cardinality errors, warnings, operator tree), and common optimization actions.
+Implemented in `.agents/skills/sql-profiling/SKILL.md` and shared with Claude Code.
+Covers plan capture (`--plan-file`), analysis (`sqlcmd plan analyze`, `--analyze-file`), reading analysis output (cardinality errors, warnings, operator tree), and common optimization actions.
 
 ## Priority
 
 1. ~~**Read-only mode**~~ — DONE
 2. ~~**`--plan` flag**~~ — DONE (`--plan-file`)
 3. ~~**`--format csv/jsonl`**~~ — DONE (`--format csv`, `--format jsonl`)
-4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze` flag)
+4. ~~**Plan analysis**~~ — DONE (`sqlcmd plan analyze`, `--analyze-file`)
 5. ~~**Better defaults**~~ — DONE
-6. ~~**Claude skill for plan analysis**~~ — DONE
+6. ~~**Query plan analysis skill**~~ — DONE
 7. **Azure AD auto-detect** — default to ActiveDirectoryDefault for *.database.windows.net, next up
 8. ~~**Connection profiles**~~ — DROPPED
 9. ~~**MCP server mode**~~ — DROPPED
