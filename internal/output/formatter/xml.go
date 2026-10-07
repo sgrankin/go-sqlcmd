@@ -11,7 +11,7 @@ type Xml struct {
 	Base
 }
 
-func (f *Xml) Serialize(in interface{}) (bytes []byte) {
+func (f *Xml) Serialize(in any) (bytes []byte) {
 	var err error
 
 	bytes, err = xml.MarshalIndent(in, "", "  ")

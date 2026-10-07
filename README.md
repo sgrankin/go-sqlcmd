@@ -363,7 +363,7 @@ go test ./...
 If you are developing on Windows, you can use docker or WSL to run the tests on Linux. `docker run` lets you pass the environment variables. For example, if your code is in `i:\git\go-sqlcmd` you can run tests in a docker container:
 
 ```cmd
-docker run -rm -e SQLCMDSERVER=<yourserver> -e SQLCMDUSER=<youruser> -e SQLCMDPASSWORD=<yourpassword> -v i:\git\go-sqlcmd:/go-sqlcmd -w /go-sqlcmd golang:1.16 go test ./...
+docker run -rm -e SQLCMDSERVER=<yourserver> -e SQLCMDUSER=<youruser> -e SQLCMDPASSWORD=<yourpassword> -v i:\git\go-sqlcmd:/go-sqlcmd -w /go-sqlcmd golang:1.27.1 go test ./...
 ```
 
 ## Localization
@@ -390,7 +390,7 @@ The easiest way to develop and test sqlcmd is to use the included [Dev Container
 - **GitHub Codespaces**: Click the "Code" button on GitHub and select "Create codespace"
 
 The dev container includes:
-- Go 1.24 with all development tools (golangci-lint, gopls, delve)
+- Go 1.27 with all development tools (golangci-lint, gopls, delve)
 - SQL Server 2025 ready for integration tests
 - Your locally built `sqlcmd` added to PATH automatically
 - Pre-configured environment variables for tests
@@ -411,7 +411,7 @@ sql -Q "SELECT @@VERSION"
 
 If you prefer to set up your environment manually:
 
-1. Install Go 1.24 or higher
+1. Install Go 1.27.1 or higher
 2. Clone this repository
 3. Set up a SQL Server instance (2017 or later)
 4. Configure environment variables:

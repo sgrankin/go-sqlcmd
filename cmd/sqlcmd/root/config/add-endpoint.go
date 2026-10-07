@@ -66,11 +66,9 @@ func (c *AddEndpoint) run() {
 	output := c.Output()
 
 	endpoint := sqlconfig.Endpoint{
-		EndpointDetails: sqlconfig.EndpointDetails{
-			Address: c.address,
-			Port:    c.port,
-		},
-		Name: c.name,
+		Address: c.address,
+		Port:    c.port,
+		Name:    c.name,
 	}
 
 	uniqueEndpointName := config.AddEndpoint(endpoint)

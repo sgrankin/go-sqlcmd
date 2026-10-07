@@ -22,11 +22,9 @@ func TestConnect(t *testing.T) {
 	}, func(format string, a ...any) { fmt.Printf(format, a...) }, secret.Decode)
 
 	endpoint := Endpoint{
-		EndpointDetails: EndpointDetails{
-			Address: "localhost",
-			Port:    1433,
-		},
-		Name: "local-default-instance"}
+		Address: "localhost",
+		Port:    1433,
+		Name:    "local-default-instance"}
 	type args struct {
 		endpoint Endpoint
 		user     *User

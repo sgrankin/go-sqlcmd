@@ -36,20 +36,16 @@ func TestGetContainerId2(t *testing.T) {
 
 	AddEndpoint(Endpoint{
 		AssetDetails: &AssetDetails{},
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    1433,
-		},
-		Name: "endpoint",
+		Address:      "127.0.0.1",
+		Port:         1433,
+		Name:         "endpoint",
 	})
 
 	user := "user"
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 
 	SetCurrentContextName("context")
@@ -66,20 +62,16 @@ func TestGetContainerId3(t *testing.T) {
 			ContainerDetails: &ContainerDetails{
 				Id:    strings.Repeat("9", 32),
 				Image: "www.image.url"}},
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    1433,
-		},
-		Name: "endpoint",
+		Address: "127.0.0.1",
+		Port:    1433,
+		Name:    "endpoint",
 	})
 
 	user := "user"
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 
 	SetCurrentContextName("context")
@@ -96,20 +88,16 @@ func TestGetContainerId4(t *testing.T) {
 			ContainerDetails: &ContainerDetails{
 				Id:    strings.Repeat("9", 32),
 				Image: "www.image.url"}},
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    1433,
-		},
-		Name: "endpoint",
+		Address: "127.0.0.1",
+		Port:    1433,
+		Name:    "endpoint",
 	})
 
 	user := "user"
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 
 	SetCurrentContextName("context")

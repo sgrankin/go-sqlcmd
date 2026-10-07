@@ -25,14 +25,14 @@ var AllowedImports = map[string][]string{
 	`"github.com/google/uuid`:          {},
 	`"github.com/peterh/liner`:         {`pkg/console`},
 	`"github.com/microsoft/go-mssqldb`: {},
-	`"github.com/sgrankin/go-sqlcmd`:  {},
+	`"github.com/sgrankin/go-sqlcmd`:   {},
 	`"github.com/spf13/cobra`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/spf13/pflag`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/spf13/viper`:          {`internal/legacy`, `cmd/sqlcmd`},
 	`"github.com/stretchr/testify`:     {},
 }
 
-func runImports(pass *analysis.Pass) (interface{}, error) {
+func runImports(pass *analysis.Pass) (any, error) {
 	inspectorInstance := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	nodeFilter := []ast.Node{(*ast.File)(nil)}
 	inspectorInstance.Preorder(nodeFilter, func(n ast.Node) {

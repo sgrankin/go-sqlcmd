@@ -24,6 +24,11 @@ echo "📁 Working in: $(pwd)"
 echo "📦 Downloading Go dependencies..."
 go mod download
 
+# Build the module-pinned linter with the project's analyzer dependencies.
+echo "🔧 Building golangci-lint..."
+mkdir -p "$(go env GOPATH)/bin"
+go build -o "$(go env GOPATH)/bin/golangci-lint" github.com/golangci/golangci-lint/cmd/golangci-lint
+
 # Build sqlcmd and add to PATH
 echo "🔨 Building sqlcmd..."
 go build -o ~/bin/sqlcmd ./cmd/sqlcmd

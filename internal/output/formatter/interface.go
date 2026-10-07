@@ -8,6 +8,6 @@ package formatter
 // byte slice. The CheckErr method handles any error encountered during
 // the serialization process.
 type Formatter interface {
-	Serialize(in interface{}) (bytes []byte)
+	Serialize(in any) (bytes []byte)
 	CheckErr(err error)
 }

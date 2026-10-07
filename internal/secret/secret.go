@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode/utf16"
 )
@@ -100,10 +101,5 @@ func EncryptionMethodsForUsage() string {
 
 // IsValidEncryptionMethod returns true if the method is a valid encryption method
 func IsValidEncryptionMethod(method string) bool {
-	for _, m := range encryptionMethods {
-		if m == method {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(encryptionMethods, method)
 }

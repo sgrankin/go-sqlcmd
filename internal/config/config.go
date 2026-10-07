@@ -138,19 +138,15 @@ func AddContextWithContainer(
 				Id:    containerId,
 				Image: imageName},
 		},
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    portNumber,
-		},
-		Name: endPointName,
+		Address: "127.0.0.1",
+		Port:    portNumber,
+		Name:    endPointName,
 	})
 
 	config.Contexts = append(config.Contexts, Context{
-		ContextDetails: ContextDetails{
-			Endpoint: endPointName,
-			User:     &userName,
-		},
-		Name: contextName,
+		Endpoint: endPointName,
+		User:     &userName,
+		Name:     contextName,
 	})
 
 	user := User{

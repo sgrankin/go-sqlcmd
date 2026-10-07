@@ -11,7 +11,7 @@ type Yaml struct {
 	Base
 }
 
-func (f *Yaml) Serialize(in interface{}) (bytes []byte) {
+func (f *Yaml) Serialize(in any) (bytes []byte) {
 	var err error
 
 	bytes, err = yaml.Marshal(in)

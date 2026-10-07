@@ -3,6 +3,7 @@ package plan
 import (
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -96,12 +97,7 @@ func hasActualInfo(op *Operator) bool {
 	if op.ActualRows > 0 || op.ElapsedMs > 0 {
 		return true
 	}
-	for _, child := range op.Children {
-		if hasActualInfo(child) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(op.Children, hasActualInfo)
 }
 
 func computeCardinalityErrors(op *Operator) []CardinalityError {
@@ -130,10 +126,7 @@ func collectCardErrors(op *Operator, errs *[]CardinalityError) {
 		if !inherited {
 			// EstimateRows is per-execution; ActualRows is total across all executions.
 			// Scale estimate by ActualExecs to compare apples-to-apples.
-			execs := op.ActualExecs
-			if execs < 1 {
-				execs = 1
-			}
+			execs := max(op.ActualExecs, 1)
 			totalEstRows := op.EstRows * float64(execs)
 			ratio := math.Max(
 				float64(op.ActualRows)/totalEstRows,

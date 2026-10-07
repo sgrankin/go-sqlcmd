@@ -30,8 +30,8 @@ func TestUserExists2(t *testing.T) {
 func TestUserExists3(t *testing.T) {
 	user := "user"
 	context := Context{
-		ContextDetails: ContextDetails{User: &user},
-		Name:           "context",
+		User: &user,
+		Name: "context",
 	}
 	assert.True(t, UserExists(context))
 }

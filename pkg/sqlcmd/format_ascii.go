@@ -82,10 +82,7 @@ func (f *asciiFormatter) printAsciiTable() {
 
 	// Limit column width to maxWidth - 4 (border + padding)
 	// 1 (left border) + 1 (space) + content + 1 (space) + 1 (right border) = content + 4
-	maxColContentWidth := maxWidth - 4
-	if maxColContentWidth < 1 {
-		maxColContentWidth = 1
-	}
+	maxColContentWidth := max(maxWidth-4, 1)
 
 	for i := range f.colWidths {
 		if f.colWidths[i] > maxColContentWidth {
@@ -134,22 +131,25 @@ func (f *asciiFormatter) printTableSegment(colWidths []int, startCol, endCol int
 		sep = "|"
 	}
 
-	divider := "+"
+	var divider strings.Builder
+	divider.WriteString("+")
 	for i := startCol; i <= endCol; i++ {
-		divider += strings.Repeat("-", colWidths[i]+2) + "+"
+		divider.WriteString(strings.Repeat("-", colWidths[i]+2) + "+")
 	}
-	f.writeOut(divider+SqlcmdEol, color.TextTypeSeparator)
+	f.writeOut(divider.String()+SqlcmdEol, color.TextTypeSeparator)
 
-	header := sep
+	var header strings.Builder
+	header.WriteString(sep)
 	for i := startCol; i <= endCol; i++ {
 		name := f.columnDetails[i].col.Name()
-		header += " " + padRightString(name, colWidths[i]) + " " + sep
+		header.WriteString(" " + padRightString(name, colWidths[i]) + " " + sep)
 	}
-	f.writeOut(header+SqlcmdEol, color.TextTypeHeader)
-	f.writeOut(divider+SqlcmdEol, color.TextTypeSeparator)
+	f.writeOut(header.String()+SqlcmdEol, color.TextTypeHeader)
+	f.writeOut(divider.String()+SqlcmdEol, color.TextTypeSeparator)
 
 	for _, row := range f.rows {
-		line := sep
+		var line strings.Builder
+		line.WriteString(sep)
 		for i := startCol; i <= endCol; i++ {
 			val := ""
 			if i < len(row) {
@@ -158,14 +158,14 @@ func (f *asciiFormatter) printTableSegment(colWidths []int, startCol, endCol int
 			isNumeric := isNumericType(f.columnDetails[i].col.DatabaseTypeName())
 
 			if isNumeric {
-				line += " " + padLeftString(val, colWidths[i]) + " " + sep
+				line.WriteString(" " + padLeftString(val, colWidths[i]) + " " + sep)
 			} else {
-				line += " " + padRightString(val, colWidths[i]) + " " + sep
+				line.WriteString(" " + padRightString(val, colWidths[i]) + " " + sep)
 			}
 		}
-		f.writeOut(line+SqlcmdEol, color.TextTypeCell)
+		f.writeOut(line.String()+SqlcmdEol, color.TextTypeCell)
 	}
-	f.writeOut(divider+SqlcmdEol, color.TextTypeSeparator)
+	f.writeOut(divider.String()+SqlcmdEol, color.TextTypeSeparator)
 }
 
 func padRightString(s string, width int) string {

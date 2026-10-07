@@ -64,7 +64,7 @@ func (f *jsonlFormatter) AddRow(rows *sql.Rows) string {
 		}
 	}
 
-	obj := make(map[string]interface{}, len(f.colNames))
+	obj := make(map[string]any, len(f.colNames))
 	for i, name := range f.colNames {
 		obj[name] = values[i]
 	}

@@ -127,7 +127,7 @@ func TestDecodeBinary(t *testing.T) {
 func BenchmarkDecodeBinary(b *testing.B) {
 	b.ReportAllocs()
 	bytes := make([]byte, 10000)
-	for i := 0; i < 10000; i++ {
+	for i := range 10000 {
 		bytes[i] = byte(i % 0xff)
 	}
 	b.ResetTimer()

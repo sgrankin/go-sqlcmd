@@ -28,9 +28,7 @@ func TestPersistCredentialForAds(t *testing.T) {
 		},
 	}
 	ads.persistCredentialForAds("localhost", sqlconfig.Endpoint{
-		EndpointDetails: sqlconfig.EndpointDetails{
-			Port: 1433,
-		},
+		Port: 1433,
 	}, user)
 
 	// Test if the correct target name is generated

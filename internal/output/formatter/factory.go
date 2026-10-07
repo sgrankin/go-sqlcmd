@@ -24,17 +24,17 @@ func New(options Options,
 
 	switch options.SerializationFormat {
 	case "json":
-		f = &Json{Base: Base{
+		f = &Json{
 			StandardOutput:       options.StandardOutput,
-			ErrorHandlerCallback: options.ErrorHandler}}
+			ErrorHandlerCallback: options.ErrorHandler}
 	case "yaml":
-		f = &Yaml{Base: Base{
+		f = &Yaml{
 			StandardOutput:       options.StandardOutput,
-			ErrorHandlerCallback: options.ErrorHandler}}
+			ErrorHandlerCallback: options.ErrorHandler}
 	case "xml":
-		f = &Xml{Base: Base{
+		f = &Xml{
 			StandardOutput:       options.StandardOutput,
-			ErrorHandlerCallback: options.ErrorHandler}}
+			ErrorHandlerCallback: options.ErrorHandler}
 	default:
 		panic(fmt.Sprintf("Format '%v' not supported", options.SerializationFormat))
 	}

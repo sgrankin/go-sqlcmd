@@ -251,7 +251,7 @@ func GetContext(name string) (context Context) {
 // OutputContexts outputs the list of contexts in the configuration.
 // The output can be either detailed, which includes all information about each context, or a list of context names only.
 // This is controlled by the detailed flag, which is passed to the function.
-func OutputContexts(formatter func(interface{}) []byte, detailed bool) {
+func OutputContexts(formatter func(any) []byte, detailed bool) {
 	if detailed {
 		formatter(config.Contexts)
 	} else {

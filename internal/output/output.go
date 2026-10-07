@@ -21,9 +21,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/sgrankin/go-sqlcmd/internal/output/verbosity"
 	"github.com/sgrankin/go-sqlcmd/internal/pal"
-	"github.com/pkg/errors"
 )
 
 func (o Output) Debugf(format string, a ...any) {
@@ -143,7 +143,7 @@ func (o Output) Panicf(format string, a ...any) {
 	panic(fmt.Sprintf(format, a...))
 }
 
-func (o Output) Struct(in interface{}) (bytes []byte) {
+func (o Output) Struct(in any) (bytes []byte) {
 	bytes = o.formatter.Serialize(in)
 
 	return

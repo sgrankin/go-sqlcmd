@@ -52,11 +52,8 @@ func formatSummaryStatement(w io.Writer, stmt *StatementResult) {
 	// Top 3 cardinality errors
 	if len(stmt.CardErrors) > 0 {
 		fmt.Fprint(w, "Cardinality errors:")
-		limit := 3
-		if len(stmt.CardErrors) < limit {
-			limit = len(stmt.CardErrors)
-		}
-		for i := 0; i < limit; i++ {
+		limit := min(len(stmt.CardErrors), 3)
+		for i := range limit {
 			e := stmt.CardErrors[i]
 			if i > 0 {
 				fmt.Fprint(w, ",")

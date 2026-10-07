@@ -37,7 +37,7 @@ func NewController() (c *Controller) {
 	c = new(Controller)
 	opts := []client.Opt{
 		client.FromEnv,
-		client.WithVersion("1.45"),
+		client.WithAPIVersion("1.45"),
 	}
 	// If DOCKER_HOST isn't set, detect from Docker CLI context (handles
 	// Colima and other non-standard Docker socket locations).
@@ -46,7 +46,7 @@ func NewController() (c *Controller) {
 			opts = append(opts, client.WithHost(host))
 		}
 	}
-	c.cli, err = client.NewClientWithOpts(opts...)
+	c.cli, err = client.New(opts...)
 	checkErr(err)
 
 	return

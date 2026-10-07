@@ -5,6 +5,7 @@ package sqlcmdlinter
 
 import (
 	"go/ast"
+	"slices"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -20,7 +21,7 @@ var AssertAnalyzer = &analysis.Analyzer{
 
 var blockedTestingMethods = []string{"Error", "ErrorF", "Fail", "FailNow", "Fatal", "Fatalf"}
 
-func runAsserts(pass *analysis.Pass) (interface{}, error) {
+func runAsserts(pass *analysis.Pass) (any, error) {
 	// pass.ResultOf[inspect.Analyzer] will be set if we've added inspect.Analyzer to Requires.
 	// Analyze code and make an AST from the file:
 	inspectorInstance := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
@@ -49,10 +50,5 @@ func runAsserts(pass *analysis.Pass) (interface{}, error) {
 }
 
 func contains(a []string, v string) bool {
-	for _, val := range a {
-		if val == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(a, v)
 }

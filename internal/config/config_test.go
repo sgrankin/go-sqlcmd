@@ -58,27 +58,21 @@ func TestConfig(t *testing.T) {
 						Id:    strings.Repeat("9", 64),
 						Image: "www.image.url"},
 				},
-				EndpointDetails: EndpointDetails{
-					Address: "127.0.0.1",
-					Port:    1433,
-				},
-				Name: "endpoint",
+				Address: "127.0.0.1",
+				Port:    1433,
+				Name:    "endpoint",
 			})
 
 			AddEndpoint(Endpoint{
-				EndpointDetails: EndpointDetails{
-					Address: "127.0.0.1",
-					Port:    1434,
-				},
-				Name: "endpoint",
+				Address: "127.0.0.1",
+				Port:    1434,
+				Name:    "endpoint",
 			})
 
 			AddEndpoint(Endpoint{
-				EndpointDetails: EndpointDetails{
-					Address: "127.0.0.1",
-					Port:    1435,
-				},
-				Name: "endpoint",
+				Address: "127.0.0.1",
+				Port:    1435,
+				Name:    "endpoint",
 			})
 
 			EndpointsExists()
@@ -147,11 +141,9 @@ func TestConfig(t *testing.T) {
 func addContext() {
 	user := "user"
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 }
 
@@ -161,20 +153,16 @@ func TestAddContextWithEmptyUser(t *testing.T) {
 	Clean()
 
 	AddEndpoint(Endpoint{
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    1434,
-		},
-		Name: "endpoint",
+		Address: "127.0.0.1",
+		Port:    1434,
+		Name:    "endpoint",
 	})
 
 	user := ""
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 
 	context := GetContext("context")
@@ -232,7 +220,7 @@ func TestGetUser(t *testing.T) {
 
 func TestOutputUsers(t *testing.T) {
 	type args struct {
-		formatter func(interface{}) []byte
+		formatter func(any) []byte
 		detailed  bool
 	}
 	var tests []struct {
@@ -337,11 +325,9 @@ func TestConfig_AddContextWithNoEndpoint(t *testing.T) {
 	user := "user1"
 	assert.Panics(t, func() {
 		AddContext(Context{
-			ContextDetails: ContextDetails{
-				Endpoint: "badbad",
-				User:     &user,
-			},
-			Name: "context",
+			Endpoint: "badbad",
+			User:     &user,
+			Name:     "context",
 		})
 	})
 }
@@ -359,20 +345,16 @@ func TestConfig_GetCurrentContextEndPointNotFoundPanic(t *testing.T) {
 				Id:    strings.Repeat("9", 64),
 				Image: "www.image.url"},
 		},
-		EndpointDetails: EndpointDetails{
-			Address: "127.0.0.1",
-			Port:    1433,
-		},
-		Name: "endpoint",
+		Address: "127.0.0.1",
+		Port:    1433,
+		Name:    "endpoint",
 	})
 
 	user := "user1"
 	AddContext(Context{
-		ContextDetails: ContextDetails{
-			Endpoint: "endpoint",
-			User:     &user,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     &user,
+		Name:     "context",
 	})
 
 	DeleteEndpoint("endpoint")

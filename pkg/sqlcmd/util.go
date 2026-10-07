@@ -4,6 +4,7 @@
 package sqlcmd
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -81,10 +82,5 @@ func padLeft(builder *strings.Builder, c int64, s string) *strings.Builder {
 }
 
 func contains(arr []string, s string) bool {
-	for _, a := range arr {
-		if a == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(arr, s)
 }

@@ -34,7 +34,7 @@ func TestJSONLBasicQuery(t *testing.T) {
 	lines := strings.Split(output, "\n")
 	require.Len(t, lines, 1, "should have exactly 1 line")
 
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal([]byte(lines[0]), &row)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), row["id"], "integer should be a JSON number")
@@ -49,7 +49,7 @@ func TestJSONLNullHandling(t *testing.T) {
 	require.NoError(t, err)
 
 	output := strings.TrimSpace(outBuf.buf.String())
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal([]byte(output), &row)
 	require.NoError(t, err)
 	assert.Nil(t, row["val"], "NULL should be JSON null")
@@ -69,7 +69,7 @@ func TestJSONLTypeFidelity(t *testing.T) {
 	require.NoError(t, err)
 
 	output := strings.TrimSpace(outBuf.buf.String())
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal([]byte(output), &row)
 	require.NoError(t, err)
 
@@ -92,7 +92,7 @@ func TestJSONLMultipleRows(t *testing.T) {
 	lines := strings.Split(output, "\n")
 	require.GreaterOrEqual(t, len(lines), 1, "should have at least 1 line")
 
-	var firstRow map[string]interface{}
+	var firstRow map[string]any
 	err = json.Unmarshal([]byte(lines[0]), &firstRow)
 	require.NoError(t, err)
 	assert.Equal(t, "master", firstRow["name"])
@@ -110,12 +110,12 @@ func TestJSONLMultiResultSet(t *testing.T) {
 	lines := strings.Split(output, "\n")
 	require.Len(t, lines, 2, "should have 2 lines (one per result set)")
 
-	var row1 map[string]interface{}
+	var row1 map[string]any
 	err = json.Unmarshal([]byte(lines[0]), &row1)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), row1["a"])
 
-	var row2 map[string]interface{}
+	var row2 map[string]any
 	err = json.Unmarshal([]byte(lines[1]), &row2)
 	require.NoError(t, err)
 	assert.Equal(t, "x", row2["b"])
@@ -130,7 +130,7 @@ func TestJSONLMessagesToStderr(t *testing.T) {
 
 	// stdout should only have JSONL data
 	output := strings.TrimSpace(outBuf.buf.String())
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal([]byte(output), &row)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), row["val"])
@@ -149,7 +149,7 @@ func TestJSONLDateTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	output := strings.TrimSpace(outBuf.buf.String())
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal([]byte(output), &row)
 	require.NoError(t, err)
 

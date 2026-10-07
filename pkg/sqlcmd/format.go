@@ -524,16 +524,16 @@ func (f *sqlCmdFormatterType) scanRow(rows *sql.Rows) ([]string, error) {
 // Used by both the default formatter and CSV formatter.
 // scales provides the scale for each column (used for datetime formatting).
 func scanRowStrings(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]string, error) {
-	r := make([]interface{}, len(cols))
+	r := make([]any, len(cols))
 	for i := range r {
-		r[i] = new(interface{})
+		r[i] = new(any)
 	}
 	if err := rows.Scan(r...); err != nil {
 		return nil, err
 	}
 	row := make([]string, len(cols))
 	for n, z := range r {
-		j := z.(*interface{})
+		j := z.(*any)
 		if *j == nil {
 			row[n] = "NULL"
 		} else {
@@ -584,17 +584,17 @@ func scanRowStrings(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]str
 // scanRowTyped scans a row preserving Go types for JSON serialization.
 // nil → nil, int64/float64 preserved, bool preserved, time.Time → ISO string,
 // binary → "0x..." string, UNIQUEIDENTIFIER → UUID string.
-func scanRowTyped(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]interface{}, error) {
-	r := make([]interface{}, len(cols))
+func scanRowTyped(rows *sql.Rows, cols []*sql.ColumnType, scales []int) ([]any, error) {
+	r := make([]any, len(cols))
 	for i := range r {
-		r[i] = new(interface{})
+		r[i] = new(any)
 	}
 	if err := rows.Scan(r...); err != nil {
 		return nil, err
 	}
-	row := make([]interface{}, len(cols))
+	row := make([]any, len(cols))
 	for n, z := range r {
-		j := z.(*interface{})
+		j := z.(*any)
 		if *j == nil {
 			row[n] = nil
 		} else {

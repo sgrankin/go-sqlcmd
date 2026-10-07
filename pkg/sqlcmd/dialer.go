@@ -191,7 +191,7 @@ type noProxyRule struct {
 
 func parseNoProxy(value string) []noProxyRule {
 	var rules []noProxyRule
-	for _, entry := range strings.Split(value, ",") {
+	for entry := range strings.SplitSeq(value, ",") {
 		entry = strings.ToLower(strings.TrimSpace(entry))
 		if entry == "" {
 			continue

@@ -5,7 +5,7 @@ package file
 
 import (
 	"github.com/sgrankin/go-sqlcmd/internal/io/folder"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 )
@@ -55,7 +55,7 @@ func Exists(filename string) (exists bool) {
 }
 
 func GetContents(filename string) string {
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	checkErr(err)
 
 	return string(b)

@@ -124,7 +124,7 @@ func GetEndpoint(name string) (endpoint Endpoint) {
 // the list of endpoints in the configuration as the argument.
 // Otherwise, the formatter function is called with a list of just the names of
 // the endpoints in the configuration.
-func OutputEndpoints(formatter func(interface{}) []byte, detailed bool) {
+func OutputEndpoints(formatter func(any) []byte, detailed bool) {
 	if detailed {
 		formatter(config.Endpoints)
 	} else {

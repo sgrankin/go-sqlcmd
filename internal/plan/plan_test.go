@@ -294,8 +294,8 @@ func TestFormatTextHotNodes(t *testing.T) {
 	output := buf.String()
 
 	// Children should be hot-marked, but root should not
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
 		if strings.Contains(line, "Root") {
 			assert.NotContains(t, line, "★", "root node should not be hot-marked")
 		}
@@ -359,7 +359,7 @@ func TestFormatJSON(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify it's valid JSON
-	var decoded map[string]interface{}
+	var decoded map[string]any
 	err = json.Unmarshal(buf.Bytes(), &decoded)
 	require.NoError(t, err)
 	assert.Contains(t, decoded, "Statements")
@@ -451,9 +451,9 @@ func TestFormatTextGrantedMemory(t *testing.T) {
 		Statements: []StatementResult{{
 			Attrs: map[string]string{"StatementSubTreeCost": "5.0"},
 			MemoryGrant: map[string]string{
-				"GrantedMemory":  "208968",
-				"MaxUsedMemory":  "50120",
-				"DesiredMemory":  "300000",
+				"GrantedMemory":   "208968",
+				"MaxUsedMemory":   "50120",
+				"DesiredMemory":   "300000",
 				"RequestedMemory": "250000",
 			},
 		}},
@@ -489,8 +489,8 @@ func TestFormatTextPlanHashAndEarlyAbort(t *testing.T) {
 	result := &Result{
 		Statements: []StatementResult{{
 			Attrs: map[string]string{
-				"QueryPlanHash":                "0x5E2464189556E65D",
-				"StatementOptmLevel":           "FULL",
+				"QueryPlanHash":                 "0x5E2464189556E65D",
+				"StatementOptmLevel":            "FULL",
 				"StatementOptmEarlyAbortReason": "TimeOut",
 			},
 		}},

@@ -63,14 +63,6 @@ func max64(a, b int64) int64 {
 	return b
 }
 
-// min returns the minimum of a, b.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func min64(a, b int64) int64 {
 	if a < b {
 		return a

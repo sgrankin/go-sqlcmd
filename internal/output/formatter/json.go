@@ -11,7 +11,7 @@ type Json struct {
 	Base
 }
 
-func (f *Json) Serialize(in interface{}) (bytes []byte) {
+func (f *Json) Serialize(in any) (bytes []byte) {
 	var err error
 
 	bytes, err = json.MarshalIndent(in, "", "  ")

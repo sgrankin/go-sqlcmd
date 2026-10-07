@@ -61,11 +61,9 @@ func (c *AddContext) DefineCommand(...cmdparser.CommandOptions) {
 func (c *AddContext) run() {
 	output := c.Output()
 	context := sqlconfig.Context{
-		ContextDetails: sqlconfig.ContextDetails{
-			Endpoint: c.endpointName,
-			User:     &c.userName,
-		},
-		Name: c.name,
+		Endpoint: c.endpointName,
+		User:     &c.userName,
+		Name:     c.name,
 	}
 
 	if c.endpointName == "" || !config.EndpointExists(c.endpointName) {

@@ -54,7 +54,7 @@ func Errorf(format string, a ...any) error {
 }
 
 // Sprintf() is wrapper function to create localized string
-func Sprintf(key message.Reference, args ...interface{}) string {
+func Sprintf(key message.Reference, args ...any) string {
 	return Translator.Sprintf(key, args...)
 }
 

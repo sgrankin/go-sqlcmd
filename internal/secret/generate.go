@@ -17,7 +17,7 @@ const (
 )
 
 // Generate generates a random password of a specified length. The password
-// will contain at least the specified number of special characters, 
+// will contain at least the specified number of special characters,
 // numeric digits, and upper-case letters. The remaining characters in the
 // password will be selected from a combination of lower-case letters, special
 // characters, and numeric digits. The special characters are chosen from
@@ -28,7 +28,7 @@ func Generate(passwordLength, minSpecialChar, minNum, minUpperCase int, specialC
 	allCharSet := lowerCharSet + upperCharSet + specialCharSet + numberSet
 
 	//Set special character
-	for i := 0; i < minSpecialChar; i++ {
+	for range minSpecialChar {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(specialCharSet))))
 		checkErr(err)
 		_, err = password.WriteString(string(specialCharSet[idx.Int64()]))
@@ -36,7 +36,7 @@ func Generate(passwordLength, minSpecialChar, minNum, minUpperCase int, specialC
 	}
 
 	//Set numeric
-	for i := 0; i < minNum; i++ {
+	for range minNum {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(numberSet))))
 		checkErr(err)
 		_, err = password.WriteString(string(numberSet[idx.Int64()]))
@@ -44,7 +44,7 @@ func Generate(passwordLength, minSpecialChar, minNum, minUpperCase int, specialC
 	}
 
 	//Set uppercase
-	for i := 0; i < minUpperCase; i++ {
+	for range minUpperCase {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(upperCharSet))))
 		checkErr(err)
 		_, err = password.WriteString(string(upperCharSet[idx.Int64()]))
@@ -52,7 +52,7 @@ func Generate(passwordLength, minSpecialChar, minNum, minUpperCase int, specialC
 	}
 
 	remainingLength := passwordLength - minSpecialChar - minNum - minUpperCase
-	for i := 0; i < remainingLength; i++ {
+	for range remainingLength {
 		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(allCharSet))))
 		checkErr(err)
 		_, err = password.WriteString(string(allCharSet[idx.Int64()]))

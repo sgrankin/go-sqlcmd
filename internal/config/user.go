@@ -88,7 +88,7 @@ func GetUser(name string) (user User) {
 // OutputUsers outputs the list of users in the configuration.
 // The output can be either detailed, which includes all information about each user, or a list of user names only.
 // This is controlled by the detailed flag, which is passed to the function.
-func OutputUsers(formatter func(interface{}) []byte, detailed bool) {
+func OutputUsers(formatter func(any) []byte, detailed bool) {
 	if detailed {
 		formatter(config.Users)
 	} else {

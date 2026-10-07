@@ -24,11 +24,9 @@ func TestAds(t *testing.T) {
 		Name:            "endpoint",
 	})
 	config.AddContext(sqlconfig.Context{
-		ContextDetails: sqlconfig.ContextDetails{
-			Endpoint: "endpoint",
-			User:     nil,
-		},
-		Name: "context",
+		Endpoint: "endpoint",
+		User:     nil,
+		Name:     "context",
 	})
 	config.SetCurrentContextName("context")
 
