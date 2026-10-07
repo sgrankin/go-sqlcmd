@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -283,59 +282,15 @@ func (s *Sqlcmd) ConnectDb(connect *ConnectSettings, nopw bool) error {
 		connect = s.Connect
 	}
 
-	var connector driver.Connector
-	useAad := !connect.sqlAuthentication() && !connect.integratedAuthentication()
 	if connect.RequiresPassword() && !nopw && connect.Password == "" {
 		var err error
 		if connect.Password, err = s.promptPassword(); err != nil {
 			return err
 		}
 	}
-	connstr, err := connect.ConnectionString()
+	connector, err := connect.connector()
 	if err != nil {
 		return err
-	}
-
-	if !useAad {
-		var c *mssql.Connector
-		c, err = mssql.NewConnector(connstr)
-		connector = c
-	} else {
-		connector, err = GetTokenBasedConnection(connstr, connect.authenticationMethod())
-	}
-	if err != nil {
-		return err
-	}
-	if connect.ServerNameOverride != "" {
-		serverName, _, port, protocol, err := splitServer(connect.ServerName)
-		if err != nil {
-			return err
-		}
-		if serverName == "" {
-			serverName = "."
-		}
-		if connect.useServerNameOverride(protocol, connect.ServerName) {
-			overrideName, _, _, _, err := splitServer(connect.ServerNameOverride)
-			if err != nil {
-				return err
-			}
-			if overrideName == "" {
-				overrideName = "."
-			}
-			targetPort := ""
-			if port > 0 {
-				targetPort = fmt.Sprintf("%d", port)
-			}
-			if mssqlConnector, ok := connector.(*mssql.Connector); ok {
-				mssqlConnector.Dialer = &proxyDialer{
-					serverName: overrideName,
-					targetHost: serverName,
-					targetPort: targetPort,
-				}
-			} else {
-				return localizer.Errorf("Server name override is not supported with the current authentication method")
-			}
-		}
 	}
 	db, err := sql.OpenDB(connector).Conn(context.Background())
 	if err != nil {

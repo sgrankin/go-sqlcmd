@@ -162,6 +162,16 @@ Implemented in `internal/sqlservertest/`. Uses testcontainers-go MSSQL module wi
 Implemented in `.agents/skills/sql-profiling/SKILL.md` and shared with Claude Code.
 Covers plan capture (`--plan-file`), analysis (`sqlcmd plan analyze`, `--analyze-file`), reading analysis output (cardinality errors, warnings, operator tree), and common optimization actions.
 
+## 10. ~~SOCKS5 SQL connections~~ DONE
+
+Implemented hostname-aware connector dialing in `pkg/sqlcmd/dialer.go`.
+`ALL_PROXY` / `all_proxy` support `socks5://` and `socks5h://` with proxy-side DNS.
+`NO_PROXY` / `no_proxy` exclusions apply to each destination, including redirects.
+The DSN retains TLS and SQL login identity, including `--server-name` overrides.
+SQL and Entra connectors share the transport; proxy failures never fall back to direct access.
+TCP is required, with explicit ports for named instances instead of UDP discovery.
+See the README for usage and exclusion matching semantics.
+
 ## Priority
 
 1. ~~**Read-only mode**~~ — DONE

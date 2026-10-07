@@ -4,10 +4,12 @@
 package sqlcmd
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"net/url"
 	"strings"
 
+	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/microsoft/go-mssqldb/azuread"
 	"github.com/microsoft/go-mssqldb/msdsn"
 )
@@ -204,4 +206,43 @@ func (connect ConnectSettings) useServerNameOverride(protocol string, serverName
 		return false
 	}
 	return true
+}
+
+func (connect *ConnectSettings) connector() (driver.Connector, error) {
+	connstr, err := connect.ConnectionString()
+	if err != nil {
+		return nil, err
+	}
+	if proxyEnvironment("ALL_PROXY", "all_proxy") != "" {
+		_, _, _, protocol, err := splitServer(connect.ServerName)
+		if err != nil {
+			return nil, err
+		}
+		if connect.DedicatedAdminConnection || (protocol != "" && protocol != "tcp") {
+			return nil, fmt.Errorf("SOCKS5 SQL connections require the TCP protocol")
+		}
+		// Prevent the driver's protocol fallback from opening a direct named
+		// pipe connection when the proxy is unavailable.
+		u, err := url.Parse(connstr)
+		if err != nil {
+			return nil, err
+		}
+		query := u.Query()
+		query.Set(msdsn.Protocol, "tcp")
+		u.RawQuery = query.Encode()
+		connstr = u.String()
+	}
+	var connector driver.Connector
+	if connect.sqlAuthentication() || connect.integratedAuthentication() {
+		connector, err = mssql.NewConnector(connstr)
+	} else {
+		connector, err = GetTokenBasedConnection(connstr, connect.authenticationMethod())
+	}
+	if err != nil {
+		return nil, err
+	}
+	if err := configureConnectionDialer(connector, connect); err != nil {
+		return nil, err
+	}
+	return connector, nil
 }

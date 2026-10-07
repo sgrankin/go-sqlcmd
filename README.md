@@ -57,6 +57,41 @@ The Homebrew package manager may be used on Linux and Windows Subsystem for Linu
 | --------------------- | --------------------- |
 | `brew install sqlcmd` | `brew upgrade sqlcmd` |
 
+## SQL connections through SOCKS5
+
+Set `ALL_PROXY` (or `all_proxy`) to a `socks5://` or `socks5h://` URL.
+Both schemes send the SQL hostname and port to the proxy for DNS resolution.
+Only the proxy's own hostname, if used instead of an IP address, needs local DNS.
+The proxy port defaults to 1080; username/password authentication is supported.
+
+```bash
+ALL_PROXY=socks5h://127.0.0.1:1080 \
+NO_PROXY= \
+sqlcmd -S tcp:server.database.windows.net,1433 \
+  -d database --authentication-method ActiveDirectoryAzCli \
+  -N true -Q 'SELECT 1'
+```
+
+The SQL hostname remains the identity used for TLS certificate validation and login routing.
+`--server-name` continues to override that identity while `-S` supplies the initial dial address.
+SQL and Entra authentication, reconnects, and redirected TCP connections use the same proxy policy.
+Entra token acquisition uses the authentication provider's own networking configuration.
+
+`NO_PROXY` (or `no_proxy`) specifies comma-separated exclusions:
+exact IP addresses, IP CIDR ranges, domains and their subdomains, or `*` for all destinations.
+A leading `.` or `*.` matches subdomains only.
+An optional `:port` restricts a host or IP exclusion to that port; use `[IPv6]:port` for IPv6.
+Matching is case-insensitive and applies to each dial destination, including redirects.
+IP exclusions match literal addresses without looking up SQL hostnames locally.
+Loopback destinations use the proxy unless explicitly excluded.
+The first nonempty uppercase variable takes precedence over its lowercase equivalent.
+
+Proxy connections use TCP.
+Specify a port for named instances because SOCKS5 cannot carry SQL Browser UDP discovery.
+Named pipes and dedicated administrator discovery are unsupported when `ALL_PROXY` is set.
+Invalid proxy configuration and proxy failures return errors without retrying directly.
+Connection deadlines and cancellation cover the connection to the proxy and SOCKS negotiation.
+
 ## Use sqlcmd to create local SQL Server instances
 
 Use `sqlcmd` to create SQL Server instances using a local container runtime (e.g. [Docker][] or [Podman][])
